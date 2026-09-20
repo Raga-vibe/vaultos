@@ -28,8 +28,8 @@
  * if the two addresses differ.
  */
 
-import { CdpEvmWalletProvider } from "@coinbase/agentkit";
-import { CdpClient } from "@coinbase/cdp-sdk";
+import type { CdpEvmWalletProvider } from "@coinbase/agentkit";
+import type { CdpClient } from "@coinbase/cdp-sdk";
 import { assertServer, optionalEnv, requireEnv } from "../server-guard";
 import { installAnalyticsCrashGuard } from "./analytics-guard";
 
@@ -45,6 +45,55 @@ export type FaucetNetwork = "base-sepolia" | "ethereum-sepolia";
 
 /** Tokens the CDP faucet dispenses. */
 export type FaucetToken = "eth" | "usdc" | "eurc" | "cbbtc";
+
+/**
+ * Loads the Coinbase SDKs at call time rather than at module load.
+ *
+ * WHY THIS IS NOT A STATIC IMPORT
+ *
+ * A top-level `import` that fails is uncatchable. The module never finishes
+ * evaluating, the route handler never exists, and a serverless platform
+ * answers with an empty 500 carrying no content-type and no clue — no code
+ * of ours runs, so no error of ours can be reported.
+ *
+ * That is exactly what happened on the first deployment: every route touching
+ * these packages returned a blank 500 in under 400ms, faster than the routes
+ * that succeeded, because it was dying before it could do any work.
+ *
+ * AgentKit resolves to roughly 1,270 packages including native binaries, and
+ * `serverExternalPackages` keeps it out of the bundle, so it has to be traced
+ * into the deployment as real files. When that tracing misses something, the
+ * require fails at runtime on the host and nowhere else.
+ *
+ * Importing inside a function turns that into an ordinary rejected promise:
+ * catchable, reportable, and visible in the interface with the name of the
+ * module that actually failed.
+ *
+ * @returns The two SDK entry points.
+ * @throws An error naming the module that could not be loaded.
+ */
+async function loadCoinbaseSdks(): Promise<{
+  CdpEvmWalletProvider: typeof import("@coinbase/agentkit").CdpEvmWalletProvider;
+  CdpClient: typeof import("@coinbase/cdp-sdk").CdpClient;
+}> {
+  try {
+    const [agentkit, cdpSdk] = await Promise.all([
+      import("@coinbase/agentkit"),
+      import("@coinbase/cdp-sdk"),
+    ]);
+    return {
+      CdpEvmWalletProvider: agentkit.CdpEvmWalletProvider,
+      CdpClient: cdpSdk.CdpClient,
+    };
+  } catch (error) {
+    throw new Error(
+      `Could not load the Coinbase SDKs at runtime. This usually means the ` +
+        `deployment did not include every file they need — they are declared ` +
+        `in serverExternalPackages, so they are not bundled and must be ` +
+        `traced in as real modules. Underlying error: ${String(error)}`,
+    );
+  }
+}
 
 type WalletCache = {
   provider: Promise<CdpEvmWalletProvider> | null;
@@ -74,9 +123,11 @@ function cache(): WalletCache {
  *
  * @returns The CdpClient.
  */
-export function getCdpClient(): CdpClient {
+export async function getCdpClient(): Promise<CdpClient> {
   const c = cache();
   if (c.cdp) return c.cdp;
+
+  const { CdpClient } = await loadCoinbaseSdks();
 
   c.cdp = new CdpClient({
     apiKeyId: requireEnv("CDP_API_KEY_ID"),
@@ -100,7 +151,8 @@ export function getWalletProvider(): Promise<CdpEvmWalletProvider> {
   if (c.provider) return c.provider;
 
   c.provider = (async () => {
-    const cdp = getCdpClient();
+    const { CdpEvmWalletProvider } = await loadCoinbaseSdks();
+    const cdp = await getCdpClient();
     const name = optionalEnv("AGENT_WALLET_NAME", "agentvault-agent");
     const networkId = optionalEnv("NETWORK_ID", "base-sepolia");
 
@@ -172,7 +224,7 @@ export async function requestFaucet(
   token: FaucetToken,
   network: FaucetNetwork = "base-sepolia",
 ): Promise<string> {
-  const cdp = getCdpClient();
+  const cdp = await getCdpClient();
   const provider = await getWalletProvider();
 
   const result = await cdp.evm.requestFaucet({

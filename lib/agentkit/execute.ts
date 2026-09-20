@@ -20,13 +20,30 @@
  * transaction as submitted without a hash it actually extracted.
  */
 
-import { AgentKit, erc20ActionProvider } from "@coinbase/agentkit";
 import { encodeFunctionData, erc20Abi, type Address, type Hex } from "viem";
 import { assertServer } from "../server-guard";
 import { getWalletProvider } from "./wallet";
 import { BASE_SEPOLIA_USDC } from "../opportunities/source";
 
 assertServer("lib/agentkit/execute.ts");
+
+/**
+ * Loads AgentKit at call time. See lib/agentkit/wallet.ts for why this is not
+ * a static import — in short, a failed top-level import kills the whole route
+ * before any error of ours can be reported.
+ *
+ * @returns AgentKit's entry points.
+ */
+async function loadAgentKit() {
+  try {
+    const m = await import("@coinbase/agentkit");
+    return { AgentKit: m.AgentKit, erc20ActionProvider: m.erc20ActionProvider };
+  } catch (error) {
+    throw new Error(
+      `Could not load @coinbase/agentkit at runtime: ${String(error)}`,
+    );
+  }
+}
 
 /** Matches a 0x-prefixed 32-byte hash anywhere in a string. */
 const TX_HASH_PATTERN = /0x[a-fA-F0-9]{64}/;
@@ -151,6 +168,7 @@ export async function submitTokenTransferViaAction(
   let raw: string | null = null;
 
   try {
+    const { AgentKit, erc20ActionProvider } = await loadAgentKit();
     const walletProvider = await getWalletProvider();
     const agentKit = await AgentKit.from({
       walletProvider,
