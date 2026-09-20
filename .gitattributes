@@ -1,0 +1,17 @@
+# Normalise line endings.
+#
+# This project is developed on Windows and will be cloned on Linux and macOS.
+# Without this, the first checkout on another platform rewrites every file's
+# line endings and turns a one-line change into a diff of the whole repository.
+* text=auto eol=lf
+
+# Binary: never touch these.
+*.png binary
+*.ico binary
+*.jpg binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+
+# Generated: collapse in pull request diffs.
+package-lock.json linguist-generated=true -diff

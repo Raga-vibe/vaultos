@@ -1,0 +1,38 @@
+"use client";
+
+/**
+ * Activity.
+ *
+ * The append-only record, newest first. Rows expand to the raw stored detail,
+ * because an audit log you cannot inspect is one you have to take on trust.
+ */
+
+import { AuditTrail } from "../../components/audit/AuditTrail";
+import { Button, Reveal, SectionHeader } from "../../components/ui/primitives";
+import { api, useAsync } from "../../lib/ui/api";
+
+export default function Activity() {
+  const audit = useAsync(() => api.audit(), []);
+
+  return (
+    <div className="space-y-4">
+      <Reveal>
+        <SectionHeader
+          title="Everything that happened"
+          subtitle="A permanent record. Every check, every decision, every rule that fired. Nothing here can be edited or deleted — not even by the agent."
+          trailing={
+            <Button onClick={audit.reload} busy={audit.loading}>
+              Refresh
+            </Button>
+          }
+        />
+        <AuditTrail
+          events={audit.data?.events ?? null}
+          loading={audit.loading}
+          error={audit.error}
+          onRetry={audit.reload}
+        />
+      </Reveal>
+    </div>
+  );
+}

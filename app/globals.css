@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+/**
+ * VaultOS theme.
+ *
+ * Colour carries meaning here, so it is rationed. Green, amber and red appear
+ * only as verdicts and status — never as decoration, never as a large field.
+ * Everything structural is a neutral, and the neutrals are close together so
+ * a single semantic accent reads instantly against them.
+ *
+ * Colour is never the only signal: every status also carries a glyph and a
+ * word, so the interface survives being printed in greyscale or read by
+ * someone who cannot distinguish the hues.
+ */
+
+@theme {
+  --color-ink-950: #08080a;
+  --color-ink-900: #0b0b0e;
+  --color-ink-850: #101014;
+  --color-ink-800: #15151a;
+  --color-ink-750: #1b1b21;
+  --color-ink-700: #24242c;
+  --color-ink-600: #33333d;
+  --color-ink-500: #4a4a57;
+  --color-ink-400: #6b6b7a;
+  --color-ink-300: #93939f;
+  --color-ink-200: #bcbcc6;
+  --color-ink-100: #e4e4e9;
+  --color-ink-50:  #f6f6f8;
+
+  /*
+   * Text-only greys.
+   *
+   * The ink ramp is tuned for surfaces and borders, where contrast rules do
+   * not apply. Used for TEXT, its lower steps failed WCAG AA badly —
+   * ink-600 measured 1.5:1 against the darkest surface, ink-500 2.2:1,
+   * ink-400 3.6:1, against a 4.5:1 minimum. Secondary copy was, in the
+   * literal sense, not readable.
+   *
+   * These three replace ink-400/500/600 wherever they carried text. Each is
+   * measured against ink-850 (#101014), the lightest surface text sits on,
+   * so every pairing in the app is at least as good as the figure below.
+   * They stay under ink-300 (6.25:1) so the existing visual hierarchy
+   * survives — which compresses the range, but a compressed hierarchy is a
+   * fair price for legible text.
+   */
+  --color-mute-1: #91919c; /* 6.09:1 — secondary body copy */
+  --color-mute-2: #868691; /* 5.27:1 — tertiary notes       */
+  --color-mute-3: #7c7c87; /* 4.60:1 — faint small labels   */
+
+  /* Semantic. Used for state, never for surface. */
+  --color-approve-500: #34d99b;
+  --color-approve-400: #5ee7b4;
+  --color-approve-950: #052e21;
+  --color-warn-500:    #f0b429;
+  --color-warn-400:    #f6c85a;
+  --color-warn-950:    #35260a;
+  --color-reject-500:  #f2555a;
+  --color-reject-400:  #f77e82;
+  --color-reject-950:  #3a1114;
+  --color-info-500:    #5b9dff;
+  --color-info-950:    #0b1e3d;
+
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, "Cascadia Mono",
+    "Roboto Mono", Menlo, Consolas, monospace;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-ink-950);
+  color: var(--color-ink-100);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* No horizontal overflow, ever — the mobile requirement stated as a rule. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-approve-950);
+  color: var(--color-approve-400);
+}
+
+/* Focus is always visible. Keyboard users are not second-class here. */
+:focus-visible {
+  outline: 2px solid var(--color-info-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* A hairline that reads as engineering rather than decoration. */
+.hairline {
+  border: 1px solid var(--color-ink-700);
+}
+
+.grid-backdrop {
+  background-image:
+    linear-gradient(var(--color-ink-850) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-ink-850) 1px, transparent 1px);
+  background-size: 44px 44px;
+  background-position: -1px -1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

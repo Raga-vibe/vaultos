@@ -1,0 +1,46 @@
+{
+  "name": "vaultos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "spike:serv-invalid": "tsx scripts/spike-serv-invalid.ts",
+    "spike:serv": "tsx scripts/spike-serv.ts",
+    "spike:wallet": "tsx scripts/spike-wallet.ts",
+    "spike:balance": "tsx scripts/spike-balance.ts",
+    "spike:transfer": "tsx scripts/spike-transfer.ts",
+    "spike:receipt": "tsx scripts/spike-receipt.ts",
+    "spike:matrix": "tsx scripts/spike-policy-matrix.ts"
+  },
+  "dependencies": {
+    "@coinbase/agentkit": "0.10.4",
+    "@coinbase/cdp-sdk": "1.56.0",
+    "clsx": "^2.1.1",
+    "motion": "^13.4.0",
+    "next": "16.3.5",
+    "openai": "7.19.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "viem": "2.38.3",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.1.14",
+    "@types/node": "22.18.1",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "eslint": "9.37.0",
+    "eslint-config-next": "16.3.5",
+    "tailwindcss": "4.1.14",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3",
+    "vitest": "5.0.1"
+  }
+}

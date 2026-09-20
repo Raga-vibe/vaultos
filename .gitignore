@@ -1,0 +1,45 @@
+# ─── Secrets ────────────────────────────────────────────────────────────
+# Anything that could hold a real key. Broad on purpose: the cost of an
+# over-ignored file is a moment's confusion; the cost of an under-ignored one
+# is a live CDP wallet secret in a public repository, permanently, because
+# git history keeps it even after you delete the file.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+
+# ─── Dependencies and build output ──────────────────────────────────────
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# ─── Working files, not deliverables ────────────────────────────────────
+# Scratch output from assistant sessions: duplicated docs, screenshots of a
+# development environment mid-error. Useful while building, misleading in a
+# public repository.
+Claude outputs/
+brand/
+
+# Numbered duplicates. The desktop bridge writes "name-1.png" rather than
+# overwriting, so these appear without anyone asking for them.
+*-1.png
+*-2.png
+
+# ─── Tooling and OS noise ───────────────────────────────────────────────
+.vercel
+coverage/
+.turbo/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+*.swp
