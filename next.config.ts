@@ -1,6 +1,17 @@
 import type { NextConfig } from "next";
 
 /**
+ * NODE VERSION IS LOAD-BEARING — see package.json engines: "22.x".
+ *
+ * @coinbase/cdp-sdk ships a CommonJS build that calls require("jose"), and
+ * jose 6 is ESM-only ("type": "module", no CJS entry). Requiring an ES module
+ * from CommonJS only works on Node 22.12 and above; on Node 20 it throws
+ * ERR_REQUIRE_ESM and every route touching a wallet dies at import.
+ *
+ * It therefore works on any modern developer machine and fails on a host that
+ * defaults to Node 20 — which is precisely what happened. Do not loosen the
+ * engines range to include 20.
+ *
  * serverExternalPackages is required.
  *
  * @coinbase/agentkit and the CDP SDKs are CommonJS and pull in a very large
@@ -59,27 +70,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   serverExternalPackages,
 
-  /**
-   * Force the Coinbase packages into the deployed functions.
-   *
-   * `serverExternalPackages` keeps these out of the bundle, which means the
-   * host has to ship them as real files. Next works out which files to
-   * include by statically tracing imports — and that tracing cannot follow a
-   * dependency loaded through a computed path, a native binary, or an
-   * optional require, all of which this tree contains.
-   *
-   * When it misses one, nothing fails at build time. The function is deployed
-   * incomplete and the require blows up on the first request, which is how a
-   * green build produced an empty 500 on every route touching a wallet.
-   *
-   * Listing them explicitly costs deployment size and removes the guesswork.
-   */
-  outputFileTracingIncludes: {
-    "/api/**/*": [
-      "./node_modules/@coinbase/**/*",
-      "./node_modules/viem/**/*",
-    ],
-  },
 
   async headers() {
     return [
