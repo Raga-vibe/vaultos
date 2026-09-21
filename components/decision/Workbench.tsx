@@ -52,8 +52,8 @@ import {
  * narration — the panels below it already say what happened.
  */
 const STAGE_LABEL: Partial<Record<FlowStage, string>> = {
-  assessing: "Assessing opportunity…",
-  evaluating: "Checking policy…",
+  assessing: "Asking SERV…",
+  evaluating: "Checking your rules…",
   executing: "Submitting transaction…",
 };
 
@@ -229,10 +229,10 @@ export function Workbench({
           */}
           <div className="ml-auto flex flex-wrap gap-2">
             <Button onClick={assess} busy={assessing}>
-              Get SERV assessment
+              Ask SERV
             </Button>
             <Button onClick={evaluate} busy={evaluating}>
-              Verify against policy
+              Check my rules
             </Button>
             <Button
               tone="approve"
@@ -240,15 +240,14 @@ export function Workbench({
               busy={executing}
               disabled={!canExecute}
             >
-              Execute approved action
+              Send the approved move
             </Button>
           </div>
         </div>
 
         <p className="mt-3 text-[11px] leading-relaxed text-mute-2">
-          SERV only advises — you can skip it entirely and the verdict will not
-          change. Only the policy check can authorise, and Execute stays locked
-          until it has.
+SERV is optional — skip it and the answer is the same. Only the rules
+          check can approve, and sending stays locked until it does.
         </p>
 
         {/* A missing destination is a deployment setting, not a refusal and
@@ -395,8 +394,8 @@ export function Workbench({
                 execution.requiresManualApproval ? (
                   <p className="text-sm leading-relaxed text-warn-400">
                     <span aria-hidden="true">! </span>
-                    Your policy permits this, but you require a human to
-                    confirm every move. Nothing was sent.
+                    Your rules allow this, but you asked to confirm every move
+                    yourself. Nothing was sent.
                   </p>
                 ) : (
                   /* The server refused at the execution boundary too. Same
@@ -404,7 +403,7 @@ export function Workbench({
                   <SafetyDecision
                     headline={
                       execution.reason ??
-                      "Your policy refused this at the execution boundary. Nothing was sent."
+                      "Your rules refused this. Nothing was sent."
                     }
                   />
                 )

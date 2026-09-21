@@ -58,14 +58,14 @@ export function AgentStatus({
 
       <div className="mt-3 border-t border-ink-800 pt-3">
         <p className="text-[10px] uppercase tracking-[0.12em] text-mute-2">
-          Authority
+          Acting on its own
         </p>
         <div className="mt-1.5">
           {policy === null ? (
             <Skeleton className="h-5 w-24" />
           ) : (
             <Pill tone={supervised ? "approve" : "warn"}>
-              {supervised ? "Supervised" : "Autonomous"}
+              {supervised ? "Asks you first" : "Acts alone"}
             </Pill>
           )}
         </div>
@@ -73,8 +73,8 @@ export function AgentStatus({
           {policy === null
             ? null
             : supervised
-              ? "autoExecute is off — every approved action waits for a person."
-              : "autoExecute is on — approved actions run without confirmation."}
+              ? "Off — every approved move waits for you."
+              : "On — approved moves run without asking."}
         </p>
       </div>
     </Card>

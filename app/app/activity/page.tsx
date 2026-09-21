@@ -23,7 +23,7 @@ export default function Activity() {
         <SectionHeader
           as="h1"
           title="Audit trail"
-          subtitle="Append-only, newest first. Every assessment, every verification, every refusal and every transaction — with the rule that produced it. Nothing here can be edited or deleted, not even by the agent."
+          subtitle="Everything that happened, newest first — including every refusal. Nothing here can be edited or deleted."
           trailing={
             <Button onClick={audit.reload} busy={audit.loading}>
               Refresh

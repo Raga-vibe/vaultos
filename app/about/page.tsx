@@ -17,37 +17,37 @@ import { SiteShell } from "../../components/shell/SiteShell";
 export const metadata: Metadata = {
   title: "About — VaultOS",
   description:
-    "Why VaultOS separates reasoning from authorization, how SERV, the policy engine and AgentKit relate, and what the current demo does and does not claim.",
+    "Why the AI that suggests and the code that decides are kept apart, and what this demo does and does not claim.",
 };
 
 const LAYERS = [
   [
     "SERV",
-    "Advisory",
-    "Provides an assessment: risk, liquidity, a suggested allocation, and what concerns it. It cannot reach the policy engine and cannot authorise anything. If its answer is malformed, it is discarded rather than guessed at.",
+    "Suggestion",
+    "Says how risky a move looks and how much it would put in. It cannot reach your rules and cannot approve anything. If its answer is unreadable, it is thrown away rather than guessed at.",
   ],
   [
     "Policy engine",
-    "Authorization",
-    "Checks the proposed action against explicit, user-defined rules. Deterministic, exact-integer arithmetic, no clock of its own, and it fails closed — if a rule cannot be evaluated, the answer is no. It has never read the assessment.",
+    "Decides",
+    "Checks the move against the limits you set. Same question, same answer, every time — and if a rule can't be checked, the answer is no. It never sees what the AI said.",
   ],
   [
     "AgentKit",
     "Execution",
-    "Signs and submits the transaction, on Base Sepolia. It runs only what was authorised, and reports a result only when a block confirms it.",
+    "Sends the transaction. Only what was approved, and only reported as done once a block confirms it.",
   ],
   [
     "Audit trail",
     "Record",
-    "Append-only. What was assessed, what was allowed, what was refused, what executed, and which rule produced each outcome.",
+    "What was asked, what was allowed, what was refused, and which rule decided.",
   ],
 ] as const;
 
 const NOT = [
-  "Not a profit guarantee, and not a claim that any of this earns a return.",
-  "Not a production investment service. Base Sepolia only; there is no mainnet path in the code.",
-  "Not an unrestricted trading bot. Nothing executes that your policy did not authorise.",
-  "Not financial advice. The assessments are a language model's opinion, presented as one.",
+  "Not a way to make money. Nothing here earns anything.",
+  "Not a real investment service. Test network only — there is no real-money path in the code.",
+  "Not a trading bot let loose. Nothing runs that your rules did not allow.",
+  "Not financial advice. What the AI says is an opinion, shown as one.",
 ] as const;
 
 export default function About() {
@@ -62,9 +62,8 @@ export default function About() {
         </p>
 
         <p className="mt-7 text-lg leading-relaxed text-ink-100">
-          VaultOS is a control layer for autonomous wallets. It lets an AI
-          analyse an action without giving the AI authority to override the
-          rules that protect the wallet.
+          VaultOS is a spending limit for an AI that can move your money. The
+          AI can analyse whatever it likes; it cannot move the line you drew.
         </p>
 
         {/* ── The problem ────────────────────────────────────────── */}
@@ -101,7 +100,7 @@ export default function About() {
               <div
                 key={name}
                 className={
-                  role === "Authorization"
+                  role === "Decides"
                     ? "rounded-lg border border-approve-500/35 bg-approve-950/20 p-4"
                     : "rounded-lg border border-ink-700 bg-ink-900/60 p-4"
                 }
@@ -112,7 +111,7 @@ export default function About() {
                   </span>
                   <span
                     className={
-                      role === "Authorization"
+                      role === "Decides"
                         ? "rounded border border-approve-500/40 bg-approve-950/60 px-1.5 py-px font-mono text-[9px] uppercase tracking-wider text-approve-400"
                         : "rounded border border-ink-600 bg-ink-850 px-1.5 py-px font-mono text-[9px] uppercase tracking-wider text-mute-1"
                     }
@@ -129,8 +128,7 @@ export default function About() {
 
           <p className="mt-6 rounded-lg border border-ink-700 bg-ink-850/60 px-4 py-3 text-[13px] leading-relaxed text-ink-200">
             <span className="text-mute-2">The rule underneath all of it: </span>
-            a language model never decides whether a hard financial constraint
-            is satisfied.
+            an AI never gets to decide whether a hard money limit has been met.
           </p>
         </section>
 

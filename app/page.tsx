@@ -36,22 +36,22 @@ export const metadata: Metadata = {
 
 const LAYERS = [
   {
-    name: "The AI",
+    name: "SERV Reasoning",
     role: "Suggestion",
     authoritative: false,
-    body: "Looks at a move and says what it thinks. It cannot reach your wallet and cannot approve anything.",
+    body: "The AI. Looks at a move and says what it thinks — how risky, how much. It cannot reach your wallet and cannot approve anything.",
   },
   {
     name: "Your rules",
     role: "Decides",
     authoritative: true,
-    body: "Plain code that checks the move against the limits you set. It never sees what the AI said. Only this can say yes.",
+    body: "Plain code that checks the move against the limits you set. It never sees what SERV said. Only this can say yes.",
   },
   {
-    name: "The wallet",
+    name: "Coinbase AgentKit",
     role: "Acts",
     authoritative: false,
-    body: "Sends the transaction — but only one that was already approved.",
+    body: "Holds the wallet and sends the transaction — but only one that was already approved.",
   },
 ];
 
@@ -139,7 +139,7 @@ export default function Landing() {
             </h1>
 
             <p className="mx-auto mt-6 max-w-lg text-[15px] leading-relaxed text-mute-1">
-              The AI suggests. Your rules decide. If a rule says no, nothing
+              SERV suggests. Your rules decide. If a rule says no, nothing
               moves — however good the argument.
             </p>
 
@@ -287,7 +287,7 @@ export default function Landing() {
                   href="/about"
                   className="text-sm text-mute-1 underline-offset-4 hover:text-ink-100 hover:underline"
                 >
-                  Read more about the design
+                  More about how it works
                 </Link>
               </div>
             </section>

@@ -13,7 +13,7 @@ import { AppShell } from "../../components/shell/AppShell";
 export const metadata: Metadata = {
   title: "Overview — VaultOS",
   description:
-    "Your wallet, your boundaries, and the opportunities waiting to be reviewed.",
+    "Your wallet, your limits, and the moves waiting to be checked.",
 };
 
 export default function WorkspaceLayout({

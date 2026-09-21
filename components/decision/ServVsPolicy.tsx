@@ -193,9 +193,9 @@ export function ServVsPolicy({
         {/* ── SERV ─────────────────────────────────────────────────── */}
         <Card className="flex flex-col">
           <PanelHeading
-            title="SERV assessment"
-            gloss="What the AI thinks"
-            role="Advisory"
+            title="What SERV thinks"
+            gloss="SERV Reasoning — the AI that looks at the move"
+            role="Suggestion"
             tone="advisory"
           />
 
@@ -234,9 +234,7 @@ export function ServVsPolicy({
               </div>
             ) : !assessment ? (
               <p className="text-sm leading-relaxed text-mute-2">
-                Nothing asked yet. The AI only speaks when you press
-                &ldquo;Ask the AI&rdquo; — and whatever it says changes nothing
-                on its own.
+                Nothing asked yet. Whatever SERV says changes nothing on its own.
               </p>
             ) : (
               <div className="space-y-4">
@@ -260,7 +258,7 @@ export function ServVsPolicy({
 
                 <Field
                   label="How much it suggests"
-                  hint="Only a suggestion — your limit is enforced separately."
+                  hint="A suggestion. Your limit is separate."
                 >
                   <Mono className="text-2xl text-ink-100">
                     {assessment.recommendedAllocationPercent}%
@@ -295,16 +293,16 @@ export function ServVsPolicy({
           </div>
 
           <p className="border-t border-ink-800 px-4 py-2.5 text-[11px] text-mute-2">
-The AI can suggest. It cannot approve anything.
+SERV suggests. It cannot approve anything.
           </p>
         </Card>
 
         {/* ── Policy engine ────────────────────────────────────────── */}
         <Card className="flex flex-col">
           <PanelHeading
-            title="Policy verification"
-            gloss="What your rules say — this is the only thing that can authorise"
-            role="Authoritative"
+            title="What your rules say"
+            gloss="Plain code that never sees SERV. Only this can say yes."
+            role="Decides"
             tone="authoritative"
           />
 
@@ -316,8 +314,7 @@ The AI can suggest. It cannot approve anything.
               </div>
             ) : !verdict ? (
               <p className="text-sm leading-relaxed text-mute-2">
-                Not checked yet. Press &ldquo;Check my rules&rdquo; to see what
-                your boundaries say about this.
+                Not checked yet.
               </p>
             ) : (
               <div className="space-y-4">
@@ -331,8 +328,8 @@ The AI can suggest. It cannot approve anything.
                   <SafetyDecision
                     headline={
                       verdict.violations.length === 1
-                        ? "One of your boundaries blocked this. Nothing moved."
-                        : `${verdict.violations.length} of your boundaries blocked this. Nothing moved.`
+                        ? "One of your rules stopped this. Nothing moved."
+                        : `${verdict.violations.length} of your rules stopped this. Nothing moved.`
                     }
                   >
                     <ul className="mt-3 space-y-2">
@@ -354,8 +351,7 @@ The AI can suggest. It cannot approve anything.
                       ))}
                     </ul>
                     <p className="mt-3 text-[11px] leading-relaxed text-mute-1">
-                      To allow something like this, change the rule that
-                      refused it — not the agent.
+                      Want this allowed? Change the rule, not the AI.
                     </p>
                   </SafetyDecision>
                 ) : (
@@ -377,7 +373,7 @@ The AI can suggest. It cannot approve anything.
                 ) : null}
 
                 {verdict.allocationBps !== null ? (
-                  <Field label="Share of your money this would use">
+                  <Field label="Share of your money">
                     <Mono className="text-sm text-ink-200">
                       {(verdict.allocationBps / 100).toFixed(2)}%
                     </Mono>
@@ -386,7 +382,7 @@ The AI can suggest. It cannot approve anything.
 
                 <Field
                   label="Rules checked"
-                  hint="Every boundary tested before answering. Not a guess — a checklist."
+                  hint="A checklist, not a guess."
                 >
                   <div className="flex flex-wrap gap-1.5">
                     {verdict.evaluated.map((e) => (
@@ -404,7 +400,7 @@ The AI can suggest. It cannot approve anything.
           </div>
 
           <p className="border-t border-ink-800 px-4 py-2.5 text-[11px] text-mute-2">
-Same inputs, same answer, every time. Built from your records and the real balance — never from the AI.
+Same question, same answer, every time. Never based on what SERV said.
           </p>
         </Card>
       </div>
@@ -420,7 +416,7 @@ Same inputs, same answer, every time. Built from your records and the real balan
           >
             <div className="rounded-lg border border-ink-700 bg-ink-850/60 px-4 py-3">
               <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-mute-1">
-                They disagree — and that is the point
+                They disagree — that is the point
               </p>
               <p className="mt-1.5 text-[13px] leading-relaxed text-ink-300">
                 The AI{" "}
@@ -429,8 +425,7 @@ Same inputs, same answer, every time. Built from your records and the real balan
                   : "advised against this"}
                 , and your rules{" "}
                 {verdict?.decision === "APPROVED" ? "allowed it" : "said no"}
-                . Nothing is broken. The rules never saw the AI&rsquo;s answer —
-                that separation is what makes the limit real.
+                . Nothing is broken: the rules never saw SERV&rsquo;s answer.
               </p>
             </div>
           </motion.div>

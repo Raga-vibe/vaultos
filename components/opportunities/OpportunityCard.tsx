@@ -97,8 +97,8 @@ export function OpportunityCard({
                   tone={approved ? "approve" : "reject"}
                   title={
                     approved
-                      ? "Every rule you set passed."
-                      : "A rule you set refused this. Nothing moved."
+                      ? "Every rule passed."
+                      : "A rule stopped this. Nothing moved."
                   }
                 >
                   {approved ? "Allowed" : "Refused"}
@@ -147,7 +147,7 @@ export function OpportunityCard({
           {verdict && verdict.allocationBps !== null ? (
             <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-ink-800 pt-3">
               <p className="text-[10px] uppercase tracking-[0.12em] text-mute-2">
-                Proposed share of wallet
+                Share of wallet
               </p>
               <Mono className="text-sm text-ink-200">
                 {(verdict.allocationBps / 100).toFixed(2)}%
@@ -181,8 +181,8 @@ export function OpportunityCard({
               <div className="rounded border border-approve-500/25 bg-approve-950/25 px-2.5 py-2">
                 <p className="text-[12px] leading-snug text-ink-200">
                   {verdict.requiresManualApproval
-                    ? "Passes every rule you set. Waiting for you to confirm."
-                    : "Passes every rule you set. Cleared to go ahead."}
+                    ? "Passes every rule. Waiting for you to confirm."
+                    : "Passes every rule. Cleared to go."}
                 </p>
                 <Mono className="mt-1.5 block text-[10px] text-approve-400/80">
                   ALL {verdict.evaluated.length} CHECKS PASSED
@@ -193,7 +193,7 @@ export function OpportunityCard({
                  A blank space here would read as "nothing wrong". */
               <div className="rounded border border-warn-500/25 bg-warn-950/25 px-2.5 py-2">
                 <p className="text-[12px] leading-snug text-ink-200">
-                  Couldn&rsquo;t check this one right now.
+                  Couldn&rsquo;t check this one.
                 </p>
                 <p className="mt-1 line-clamp-2 font-mono text-[10px] leading-snug text-warn-400/80">
                   {verdictError}

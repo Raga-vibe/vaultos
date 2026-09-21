@@ -3,9 +3,9 @@ import "./globals.css";
 
 const TITLE = "VaultOS — Autonomous finance, with boundaries";
 const DESCRIPTION =
-  "The control layer for autonomous wallets. An AI advises; it never decides. " +
-  "A deterministic policy engine checks every move against your rules, and it " +
-  "has never read a word the AI wrote.";
+  "A spending limit for AI that can move your money. SERV Reasoning " +
+  "suggests; your rules decide; Coinbase AgentKit only sends what was " +
+  "approved. On Base Sepolia.";
 
 /**
  * The absolute origin, used to resolve the social card images.

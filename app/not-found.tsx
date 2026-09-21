@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 const DESTINATIONS = [
   { href: "/app", label: "Overview", hint: "Your wallet, your rules, and what to do next" },
   { href: "/app/opportunities", label: "Review an opportunity", hint: "Six examples, already checked against your rules" },
-  { href: "/app/policy", label: "Policy", hint: "All twelve boundaries" },
+  { href: "/app/policy", label: "Policy", hint: "All twelve limits" },
   { href: "/app/activity", label: "Audit trail", hint: "Every assessment, decision and transaction" },
   { href: "/about", label: "About VaultOS", hint: "What it is, and what it does not claim to be" },
 ];

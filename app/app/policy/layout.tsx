@@ -10,7 +10,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Policy — VaultOS",
   description:
-    "The twelve boundaries your autonomous wallet cannot cross.",
+    "The twelve limits your AI cannot cross.",
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

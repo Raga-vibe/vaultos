@@ -35,23 +35,16 @@ export default function PolicyPage() {
       <Reveal delay={0.08}>
         <Card className="p-5">
           <h3 className="text-[13px] font-medium text-ink-100">
-            Why a single spending limit isn&rsquo;t enough
+            Why one limit isn&rsquo;t enough
           </h3>
           <p className="mt-2.5 max-w-3xl text-[13px] leading-relaxed text-mute-1">
-            Say you allow 20% per move. That sounds safe — but the agent can
-            make twenty moves. Each one takes 20% of whatever is left, each one
-            is perfectly within your rule, and the wallet ends up empty. Worse,
-            it never even stops: 20% of a shrinking balance is always
-            &ldquo;allowed&rdquo;.
-          </p>
-          <p className="mt-2.5 max-w-3xl text-[13px] leading-relaxed text-mute-1">
-            That is what the other rules are for. A ceiling on the total. An
-            amount that must never be touched. A cap per day. A pause between
-            moves. Together they close the gap a single percentage leaves open.
+            Allow 20% per move and the agent can still make twenty moves — each
+            one perfectly within the rule, and the wallet ends up empty. That is
+            what the other rules are for: a ceiling on the total, money that must
+            never be touched, a cap per day, a pause between moves.
           </p>
           <p className="mt-2.5 max-w-3xl text-[13px] leading-relaxed text-mute-2">
-            And if a rule you set ever can&rsquo;t be checked, the answer is no.
-            Never a maybe.
+            And if a rule can&rsquo;t be checked, the answer is no. Never a maybe.
           </p>
         </Card>
       </Reveal>

@@ -56,9 +56,9 @@ const STAGES: readonly Stage[] = [
   },
   {
     key: "serv",
-    label: "SERV assessment",
+    label: "SERV takes a look",
     role: "Suggestion",
-    body: "The AI says what it thinks — how risky, how much.",
+    body: "The AI says how risky it is and how much it would put in.",
   },
   {
     key: "policy",
@@ -74,7 +74,7 @@ const STAGES: readonly Stage[] = [
   },
   {
     key: "execution",
-    label: "The wallet acts",
+    label: "AgentKit sends it",
     role: null,
     body: "Runs only what was allowed.",
   },

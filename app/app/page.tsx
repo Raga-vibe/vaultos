@@ -22,7 +22,6 @@
 import Link from "next/link";
 import { AgentStatus } from "../../components/agent/AgentStatus";
 import { AuditTrail } from "../../components/audit/AuditTrail";
-import { HowItWorks } from "../../components/explain/HowItWorks";
 import { PolicyPanel } from "../../components/policy/PolicyPanel";
 import { SystemStatus } from "../../components/system/SystemStatus";
 import { TestnetNotice } from "../../components/explain/TestnetNotice";
@@ -31,23 +30,14 @@ import { WalletCard } from "../../components/wallet/WalletCard";
 import { api, useAsync } from "../../lib/ui/api";
 
 const STEPS = [
-  ["Set your limits", "Twelve rules covering size, risk, liquidity and pace."],
+  ["Set your limits", "How much, how risky, how often."],
+  ["Pick a move to check", "Six examples, each testing a different limit."],
+  ["See what SERV thinks", "A suggestion. It approves nothing."],
   [
-    "Review an opportunity",
-    "Pick one of six examples to put through the pipeline.",
+    "See what your rules say",
+    "A separate answer, from code that never saw SERV's.",
   ],
-  [
-    "See what SERV recommends",
-    "An assessment. Advisory only — it authorises nothing.",
-  ],
-  [
-    "See what your policy allows",
-    "A separate verdict, from code that never read the assessment.",
-  ],
-  [
-    "Execute only when approved",
-    "A real Base Sepolia transaction, confirmed by a block.",
-  ],
+  ["Send it only if allowed", "A real transaction, confirmed by a block."],
 ] as const;
 
 export default function Overview() {
@@ -65,8 +55,8 @@ export default function Overview() {
             Start here
           </h1>
           <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-ink-200">
-            VaultOS puts explicit limits around autonomous actions. An AI
-            assesses an action; your rules decide whether it can happen.
+            VaultOS puts hard limits around what an AI can do with your money.
+            SERV suggests; your rules decide.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-2.5">
@@ -125,7 +115,7 @@ export default function Overview() {
         <section>
           <SectionHeader
             title="Your wallet"
-            subtitle="Read from the chain on every load. Never cached, never assumed."
+            subtitle="Read from the chain. Refreshed on every visit."
           />
           <div className="grid items-start gap-4 lg:grid-cols-[1.7fr_1fr]">
             <WalletCard state={wallet} />
@@ -152,11 +142,6 @@ export default function Overview() {
             All 12 rules, and how to change them →
           </Link>
         </section>
-      </Reveal>
-
-      {/* ── How it works ─────────────────────────────────────────── */}
-      <Reveal delay={0.16}>
-        <HowItWorks />
       </Reveal>
 
       {/* ── Recent activity ──────────────────────────────────────── */}

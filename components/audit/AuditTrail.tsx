@@ -40,22 +40,22 @@ const EVENT_META: Record<
   ASSESSMENT_REQUESTED: {
     tone: "neutral",
     label: "Assessment requested",
-    gloss: "SERV was asked for an opinion",
+    gloss: "SERV was asked",
   },
   ASSESSMENT_RECEIVED: {
     tone: "neutral",
     label: "Assessed",
-    gloss: "SERV answered — advisory only",
+    gloss: "SERV answered — a suggestion",
   },
   ASSESSMENT_REJECTED: {
     tone: "warn",
     label: "Assessment discarded",
-    gloss: "SERV's answer did not parse and was thrown away",
+    gloss: "SERV's answer was unreadable and thrown away",
   },
   POLICY_EVALUATED: {
     tone: "info",
     label: "Policy verified",
-    gloss: "Every rule checked against this request",
+    gloss: "Every rule checked",
   },
   EXECUTION_SUBMITTED: {
     tone: "warn",
@@ -70,12 +70,12 @@ const EVENT_META: Record<
   EXECUTION_FAILED: {
     tone: "warn",
     label: "Execution failed",
-    gloss: "System fault — not a policy decision",
+    gloss: "Something broke — not a decision",
   },
   OPPORTUNITY_SOURCED: {
     tone: "neutral",
     label: "Opportunity sourced",
-    gloss: "A candidate was read from the seeded set",
+    gloss: "A move was read from the examples",
   },
 };
 

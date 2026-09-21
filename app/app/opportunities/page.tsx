@@ -100,7 +100,7 @@ export default function Opportunities() {
         <SectionHeader
           as="h1"
           title="Review an opportunity"
-          subtitle="Six actions an autonomous agent might propose for your wallet. Pick one and watch your policy decide."
+          subtitle="Six moves an AI might want to make with your wallet. Pick one and watch your rules decide."
         />
 
         {/*
@@ -163,8 +163,8 @@ export default function Opportunities() {
       {chosen ? (
         <Reveal key={chosen.id}>
           <SectionHeader
-            title="Decision center"
-            subtitle="What SERV advises and what your policy authorises are two different questions, asked separately and answered by different code."
+            title="The decision"
+            subtitle="What SERV thinks and what your rules allow are two different questions, answered by different code."
           />
           <Workbench
             key={chosen.id}
@@ -175,12 +175,11 @@ export default function Opportunities() {
       ) : (
         <div className="rounded-lg border border-dashed border-ink-700 px-4 py-10 text-center">
           <p className="text-sm text-ink-200">
-            Pick an opportunity above to open the decision center.
+            Pick one above to see the decision.
           </p>
           <p className="mx-auto mt-1.5 max-w-md text-[12px] leading-relaxed text-mute-1">
-            You will see SERV&rsquo;s advisory assessment beside the
-            authoritative policy verdict — including the cases where they
-            disagree.
+            You will see what SERV suggests beside what your rules allow —
+            including where they disagree.
           </p>
         </div>
       )}

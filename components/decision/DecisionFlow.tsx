@@ -37,12 +37,12 @@ export type FlowStage =
  * that distinction and a stepper that implied the AI decides would undo it.
  */
 const STEPS = [
-  { key: "opportunity", label: "Opportunity", gloss: "Something to invest in", role: null },
-  { key: "serv", label: "SERV assessment", gloss: "The AI gives an opinion", role: "Advisory" },
-  { key: "policy", label: "Policy verification", gloss: "Your rules are checked", role: "Authoritative" },
+  { key: "opportunity", label: "The move", gloss: "What is being proposed", role: null },
+  { key: "serv", label: "SERV", gloss: "Says what it thinks", role: "Suggestion" },
+  { key: "policy", label: "Your rules", gloss: "Checked one by one", role: "Decides" },
   { key: "verdict", label: "Decision", gloss: "Allowed or refused", role: null },
-  { key: "execution", label: "Execution", gloss: "The approved action runs", role: null },
-  { key: "audit", label: "Audit record", gloss: "Written down permanently", role: null },
+  { key: "execution", label: "AgentKit", gloss: "Sends what was allowed", role: null },
+  { key: "audit", label: "Record", gloss: "Written down for good", role: null },
 ] as const;
 
 /**
@@ -184,7 +184,7 @@ export function DecisionFlow({ stage }: { stage: FlowStage }) {
                 <p
                   className={clsx(
                     "mt-1.5 inline-block rounded border px-1.5 py-px font-mono text-[9px] uppercase tracking-wider",
-                    step.role === "Authoritative"
+                    step.role === "Decides"
                       ? "border-approve-500/40 bg-approve-950/50 text-approve-400"
                       : "border-ink-600 bg-ink-850 text-mute-1",
                   )}

@@ -16,11 +16,9 @@ export function TestnetNotice() {
         !
       </span>
       <p className="flex-1 text-[13px] leading-relaxed text-ink-300">
-        <span className="font-medium text-warn-400">This is a test network.</span>{" "}
-        The wallet, the balances and the transactions are all real and verifiable
-        on Base Sepolia — but the money has no value. The investment
-        opportunities are made-up examples, chosen to show different rules
-        working. Nothing here earns a real return.
+        <span className="font-medium text-warn-400">Test network.</span>{" "}
+        The wallet and transactions are real and you can look them up — but the
+        money has no value and nothing here earns anything.
       </p>
     </div>
   );

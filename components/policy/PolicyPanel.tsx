@@ -436,7 +436,7 @@ export function PolicyPanel({
       <SectionHeader
         as={headingLevel}
         title="Your policy rules"
-        subtitle="The boundaries you set. Checked on every single move, by code that has never read a word the AI wrote and cannot be argued with."
+        subtitle="The limits you set. Checked on every move, by code that never sees what the AI said."
         trailing={
           editable && !compact ? (
             <div className="flex items-center gap-2">
@@ -533,9 +533,8 @@ export function PolicyPanel({
       {isDefault && !editing ? (
         <p className="rounded border border-ink-700 bg-ink-850/60 px-3 py-2 text-[12px] text-mute-1">
           <span aria-hidden="true">· </span>
-          No policy has been saved yet. These are the conservative defaults —
-          <Mono className="text-ink-300"> autoExecute</Mono> is off, so nothing
-          moves without a person saying so.
+          Nothing saved yet — these are the cautious defaults. Nothing moves
+          without a person saying so.
         </p>
       ) : null}
 
@@ -546,7 +545,7 @@ export function PolicyPanel({
           <>
             <GroupHeading
               title="Core limits"
-              blurb="The three questions asked on every single move."
+              blurb="Asked on every single move."
             />
             <Rule
               field="maxAllocationPercent"
@@ -560,7 +559,7 @@ export function PolicyPanel({
             <Rule field="minLiquidity" value={p.minLiquidity} />
             <GroupHeading
               title="Behaviour"
-              blurb="What the agent may do without you, and what it may never do."
+              blurb="What it may do without you."
             />
             <Rule
               field="leverageAllowed"
@@ -576,7 +575,7 @@ export function PolicyPanel({
               <>
             <GroupHeading
               title="Exposure controls"
-              blurb="Ceilings across everything, and over time — not just per move."
+              blurb="Limits across everything, and over time."
             />
             <Rule
               field="maxTotalExposurePercent"
@@ -620,7 +619,7 @@ export function PolicyPanel({
             />
             <GroupHeading
               title="Protocol controls"
-              blurb="Where the money is allowed to go, and where it never may."
+              blurb="Where the money may and may not go."
             />
             <Rule
               field="allowedProtocols"
@@ -667,7 +666,7 @@ export function PolicyPanel({
           <>
             <GroupHeading
               title="Core limits"
-              blurb="The three questions asked on every single move."
+              blurb="Asked on every single move."
             />
             <Control
               label="Biggest single move"
@@ -700,7 +699,7 @@ export function PolicyPanel({
 
             <GroupHeading
               title="Behaviour"
-              blurb="What the agent may do without you, and what it may never do."
+              blurb="What it may do without you."
             />
             <Control
               label="Borrowing to invest"
@@ -730,7 +729,7 @@ export function PolicyPanel({
 
             <GroupHeading
               title="Exposure controls"
-              blurb="Ceilings across everything, and over time — not just per move."
+              blurb="Limits across everything, and over time."
             />
             <Control
               label="Most invested at once"
@@ -809,7 +808,7 @@ export function PolicyPanel({
 
             <GroupHeading
               title="Protocol controls"
-              blurb="Where the money is allowed to go, and where it never may."
+              blurb="Where the money may and may not go."
             />
             <Control
               label="Approved places only"
