@@ -46,7 +46,7 @@ export function Card({
   return (
     <As
       className={clsx(
-        "rounded-lg border border-ink-700 bg-ink-900/80 backdrop-blur-[2px]",
+        "rounded-lg border border-ink-700 bg-ink-900/80",
         className,
       )}
     >
@@ -55,22 +55,31 @@ export function Card({
   );
 }
 
-/** A section heading with an optional trailing element. */
+/**
+ * A section heading with an optional trailing element.
+ *
+ * `as` exists because the same component opens a page and divides one. Every
+ * screen needs exactly one h1, and a screen assembled entirely from h2s reads
+ * to a screen reader as a document with no title — so the heading that names
+ * the page says so, and the rest stay subordinate to it.
+ */
 export function SectionHeader({
   title,
   subtitle,
   trailing,
+  as: Heading = "h2",
 }: {
   title: string;
   subtitle?: string;
   trailing?: ReactNode;
+  as?: "h1" | "h2";
 }) {
   return (
     <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
       <div>
-        <h2 className="text-[13px] font-medium uppercase tracking-[0.14em] text-ink-300">
+        <Heading className="text-[13px] font-medium uppercase tracking-[0.14em] text-ink-300">
           {title}
-        </h2>
+        </Heading>
         {subtitle ? (
           <p className="mt-1 text-sm text-mute-1">{subtitle}</p>
         ) : null}
@@ -115,7 +124,6 @@ export function Pill({
 
 /** A live dot with a matching label. The dot alone would not be enough. */
 export function StatusDot({ tone, label }: { tone: Tone; label: string }) {
-  const reduce = useReducedMotion();
   const colour = {
     approve: "bg-approve-500",
     warn: "bg-warn-500",
@@ -124,18 +132,24 @@ export function StatusDot({ tone, label }: { tone: Tone; label: string }) {
     neutral: "bg-ink-500",
   }[tone];
 
+  /*
+    This used to pulse forever.
+
+    It looked alive, which was the problem: every one of these reports a
+    settled fact — the wallet resolved, the store is Supabase, the network is
+    base-sepolia — and none of them is in flight. A pulse on a settled status
+    communicates nothing and costs an animation frame for as long as the tab
+    is open, on every dot on the screen. The label already carries the meaning
+    and the colour is never load-bearing, so the motion was decoration with a
+    running cost. The one place a pulse is earned is the in-flight stage of the
+    decision flow, where it stops the moment the stage settles.
+  */
   return (
     <span className="inline-flex items-center gap-2">
-      <span className="relative flex h-2 w-2" aria-hidden="true">
-        {tone !== "neutral" && !reduce ? (
-          <motion.span
-            className={clsx("absolute inline-flex h-full w-full rounded-full", colour)}
-            animate={{ opacity: [0.6, 0, 0.6], scale: [1, 2.2, 1] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-          />
-        ) : null}
-        <span className={clsx("relative inline-flex h-2 w-2 rounded-full", colour)} />
-      </span>
+      <span
+        className={clsx("h-2 w-2 shrink-0 rounded-full", colour)}
+        aria-hidden="true"
+      />
       <span className="text-xs text-ink-300">{label}</span>
     </span>
   );

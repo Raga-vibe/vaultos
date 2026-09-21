@@ -7,9 +7,9 @@
  * because an audit log you cannot inspect is one you have to take on trust.
  */
 
-import { AuditTrail } from "../../components/audit/AuditTrail";
-import { Button, Reveal, SectionHeader } from "../../components/ui/primitives";
-import { api, useAsync } from "../../lib/ui/api";
+import { AuditTrail } from "../../../components/audit/AuditTrail";
+import { Button, Reveal, SectionHeader } from "../../../components/ui/primitives";
+import { api, useAsync } from "../../../lib/ui/api";
 
 export default function Activity() {
   const audit = useAsync(() => api.audit(), []);
@@ -18,6 +18,7 @@ export default function Activity() {
     <div className="space-y-4">
       <Reveal>
         <SectionHeader
+          as="h1"
           title="Audit trail"
           subtitle="Append-only, newest first. Every assessment, every verification, every refusal and every transaction — with the rule that produced it. Nothing here can be edited or deleted, not even by the agent."
           trailing={

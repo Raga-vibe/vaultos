@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { AppShell } from "../components/shell/AppShell";
 import "./globals.css";
 
 const TITLE = "VaultOS — Autonomous finance, with boundaries";
@@ -44,14 +43,19 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * The root layout carries the document and nothing else.
+ *
+ * Two different shells live under it — SiteShell for the public pages and
+ * AppShell for the workspace — so imposing either one here would force the
+ * other to fight it.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>
-        <AppShell>{children}</AppShell>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

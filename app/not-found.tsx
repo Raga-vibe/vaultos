@@ -8,21 +8,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandMark } from "../components/shell/Brand";
+import { SiteShell } from "../components/shell/SiteShell";
 
 export const metadata: Metadata = {
   title: "Page not found — VaultOS",
 };
 
 const DESTINATIONS = [
-  { href: "/", label: "Overview", hint: "The wallet, your rules, recent activity" },
-  { href: "/opportunities", label: "Opportunities", hint: "Six examples, checked against your rules" },
-  { href: "/policy", label: "Policy", hint: "All twelve boundaries" },
-  { href: "/activity", label: "Activity", hint: "Everything that happened" },
+  { href: "/app", label: "Overview", hint: "Your wallet, your rules, and what to do next" },
+  { href: "/app/opportunities", label: "Review an opportunity", hint: "Six examples, already checked against your rules" },
+  { href: "/app/policy", label: "Policy", hint: "All twelve boundaries" },
+  { href: "/app/activity", label: "Audit trail", hint: "Every assessment, decision and transaction" },
+  { href: "/about", label: "About VaultOS", hint: "What it is, and what it does not claim to be" },
 ];
 
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-xl py-10">
+    <SiteShell>
+      <div className="mx-auto max-w-xl px-4 py-14 sm:px-6">
       <div className="flex items-center gap-3">
         <BrandMark size={28} />
         <p className="font-mono text-sm text-mute-1">404</p>
@@ -51,6 +54,7 @@ export default function NotFound() {
           </li>
         ))}
       </ul>
-    </div>
+      </div>
+    </SiteShell>
   );
 }

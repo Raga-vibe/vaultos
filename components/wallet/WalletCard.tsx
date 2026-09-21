@@ -19,8 +19,12 @@ export function WalletCard({ state }: { state: Async<WalletInfo> }) {
 
   if (loading || !data) {
     return (
-      <Card className="p-5 sm:p-6">
-        <Skeleton className="h-3 w-24" />
+      <Card className="p-5 sm:p-6" aria-busy="true">
+        {/* Named, not a generic shimmer. A reader waiting on a balance should
+            know which of the several network round trips they are waiting on. */}
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-mute-1">
+          Reading wallet&hellip;
+        </p>
         <Skeleton className="mt-4 h-12 w-56" />
         <Skeleton className="mt-6 h-3 w-72" />
       </Card>
@@ -38,9 +42,16 @@ export function WalletCard({ state }: { state: Async<WalletInfo> }) {
           <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-mute-1">
             Agent wallet
           </span>
-          <Pill tone={onBaseSepolia ? "approve" : "reject"}>
-            {data.wallet.networkId ?? "unknown network"}
-          </Pill>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Pill tone={onBaseSepolia ? "approve" : "reject"}>
+              {data.wallet.networkId ?? "unknown network"}
+            </Pill>
+            {/* Testnet context never gets hidden behind a hover or a footnote:
+                this card looks exactly like one holding real money. */}
+            <Pill tone="warn" title="Test network — these balances have no monetary value">
+              Testnet
+            </Pill>
+          </div>
         </div>
 
         <div className="mt-5 flex flex-wrap items-end gap-x-3 gap-y-1">
@@ -66,6 +77,14 @@ export function WalletCard({ state }: { state: Async<WalletInfo> }) {
             {truncateAddress(data.wallet.address, 10, 8)}
           </Mono>
           <CopyButton value={data.wallet.address} label="Copy address" />
+          <a
+            href={`https://sepolia.basescan.org/address/${data.wallet.address}`}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="rounded border border-ink-700 px-2 py-1 font-mono text-[11px] text-info-500 transition-colors hover:border-info-500/50"
+          >
+            View on BaseScan ↗
+          </a>
           <span className="ml-auto font-mono text-[11px] text-mute-2">
             chain {data.wallet.chainId ?? "—"}
           </span>

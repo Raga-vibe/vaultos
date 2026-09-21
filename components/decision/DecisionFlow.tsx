@@ -41,7 +41,7 @@ const STEPS = [
   { key: "serv", label: "SERV assessment", gloss: "The AI gives an opinion", role: "Advisory" },
   { key: "policy", label: "Policy verification", gloss: "Your rules are checked", role: "Authoritative" },
   { key: "verdict", label: "Decision", gloss: "Allowed or refused", role: null },
-  { key: "execution", label: "Execution", gloss: "Money moves on chain", role: null },
+  { key: "execution", label: "Execution", gloss: "The approved action runs", role: null },
   { key: "audit", label: "Audit record", gloss: "Written down permanently", role: null },
 ] as const;
 

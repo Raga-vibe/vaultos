@@ -128,6 +128,19 @@ export function OpportunityCard({
             </div>
           </div>
 
+          {/* What was proposed, in the units the allocation cap is written in.
+              Without it a refusal for exceeding a cap has nothing to exceed. */}
+          {verdict && verdict.allocationBps !== null ? (
+            <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-ink-800 pt-3">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-mute-2">
+                Proposed share of wallet
+              </p>
+              <Mono className="text-sm text-ink-200">
+                {(verdict.allocationBps / 100).toFixed(2)}%
+              </Mono>
+            </div>
+          ) : null}
+
           {/* The reason. This is why the card exists. */}
           <div className="mt-3 min-h-[3.25rem]">
             {loading ? (

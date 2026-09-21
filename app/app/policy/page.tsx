@@ -8,9 +8,9 @@
  * says back, including refusals, in the server's own words.
  */
 
-import { PolicyPanel } from "../../components/policy/PolicyPanel";
-import { Card, Reveal } from "../../components/ui/primitives";
-import { api, useAsync } from "../../lib/ui/api";
+import { PolicyPanel } from "../../../components/policy/PolicyPanel";
+import { Card, Reveal } from "../../../components/ui/primitives";
+import { api, useAsync } from "../../../lib/ui/api";
 
 export default function PolicyPage() {
   const policy = useAsync(() => api.policy(), []);
@@ -19,6 +19,7 @@ export default function PolicyPage() {
     <div className="space-y-6">
       <Reveal>
         <PolicyPanel
+          headingLevel="h1"
           policy={policy.data?.policy ?? null}
           isDefault={policy.data?.isDefault ?? false}
           loading={policy.loading}

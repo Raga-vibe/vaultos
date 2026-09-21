@@ -6,7 +6,6 @@
  * should not ship JavaScript to display a paragraph.
  */
 
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 export function Section({
@@ -36,7 +35,7 @@ export function LegalPage({
   children: ReactNode;
 }) {
   return (
-    <article className="mx-auto max-w-2xl">
+    <article className="mx-auto max-w-2xl px-4 py-14 sm:px-6 sm:py-20">
       <header className="mb-8">
         <h1 className="text-2xl font-semibold tracking-tight text-ink-50">
           {title}
@@ -47,15 +46,6 @@ export function LegalPage({
       </header>
 
       <div className="space-y-6">{children}</div>
-
-      <footer className="mt-10 border-t border-ink-800 pt-5">
-        <Link
-          href="/"
-          className="font-mono text-[11px] uppercase tracking-wider text-mute-1 hover:text-ink-100"
-        >
-          ← Back to VaultOS
-        </Link>
-      </footer>
     </article>
   );
 }

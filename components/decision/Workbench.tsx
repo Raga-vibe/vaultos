@@ -38,11 +38,24 @@ import { ServVsPolicy } from "./ServVsPolicy";
 import { formatAtomic } from "../../lib/ui/format";
 import {
   api,
+  useAsync,
   type Assessment,
   type EvaluateResult,
   type ExecuteResult,
   type Opportunity,
 } from "../../lib/ui/api";
+
+/**
+ * What to say while a stage is in flight.
+ *
+ * Only the states that involve waiting get a line. A settled stage needs no
+ * narration — the panels below it already say what happened.
+ */
+const STAGE_LABEL: Partial<Record<FlowStage, string>> = {
+  assessing: "Assessing opportunity…",
+  evaluating: "Checking policy…",
+  executing: "Submitting transaction…",
+};
 
 export function Workbench({
   opportunity,
@@ -52,6 +65,11 @@ export function Workbench({
   onActivity?: () => void;
 }) {
   const reduce = useReducedMotion();
+
+  // The active policy, read so the comparison can state the limit in the same
+  // units SERV used. Cached by the api client, so this is not a second fetch
+  // on top of the one the page already made.
+  const policy = useAsync(() => api.policy(), []);
 
   const [amount, setAmount] = useState("0.01");
   const [assessment, setAssessment] = useState<Assessment | null>(null);
@@ -235,8 +253,20 @@ export function Workbench({
         ) : null}
       </Card>
 
-      <Card className="overflow-x-auto p-4 sm:p-5">
-        <DecisionFlow stage={stage} />
+      <Card className="p-4 sm:p-5">
+        <div className="overflow-x-auto">
+          <DecisionFlow stage={stage} />
+        </div>
+        {/* What is happening right now, named. A spinner says "wait"; this
+            says which of six round trips you are waiting on. */}
+        {STAGE_LABEL[stage] ? (
+          <p
+            aria-live="polite"
+            className="mt-4 border-t border-ink-800 pt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-info-500"
+          >
+            {STAGE_LABEL[stage]}
+          </p>
+        ) : null}
       </Card>
 
       {/* A failed request is amber and says so. Red is reserved for refusals. */}
@@ -248,6 +278,7 @@ export function Workbench({
         assessing={assessing}
         verdict={evaluation?.verdict ?? null}
         evaluating={evaluating}
+        policy={policy.data?.policy ?? null}
       />
 
       {/* ── Execution ────────────────────────────────────────────────── */}

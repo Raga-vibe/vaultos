@@ -26,8 +26,8 @@ import {
   Skeleton,
   type Tone,
 } from "../ui/primitives";
-import { plainRefusal } from "../../lib/ui/plain";
-import type { Assessment, Verdict } from "../../lib/ui/api";
+import { PLAIN_RULES, RULE_FOR_CODE, plainRefusal } from "../../lib/ui/plain";
+import type { Assessment, Policy, Verdict } from "../../lib/ui/api";
 
 /** Maps a band to a tone for display only. Carries no authority. */
 function bandTone(band: string): Tone {
@@ -89,24 +89,106 @@ function PanelHeading({
   );
 }
 
+
+/**
+ * The one line that makes the architecture visible.
+ *
+ * Two numbers beside each other — what the model suggested, and what the rules
+ * permit — then the verdict, then the rule that produced it. Everything else
+ * on this screen elaborates; this is the claim itself, and it is the only part
+ * that has to survive being read at a glance from the back of a room.
+ *
+ * It renders only once both answers exist. A half-filled comparison would
+ * invite the reader to complete it themselves, which is exactly the inference
+ * this product spends its effort preventing.
+ */
+function Contrast({
+  assessment,
+  verdict,
+  policy,
+}: {
+  assessment: Assessment;
+  verdict: Verdict;
+  policy: Policy | null;
+}) {
+  const refused = verdict.decision === "REJECTED";
+  const code = verdict.violations[0]?.code ?? null;
+  const field = code ? RULE_FOR_CODE[code] : undefined;
+  const rule = field ? PLAIN_RULES[field] : undefined;
+
+  return (
+    <div className="rounded-lg border border-ink-700 bg-ink-900/70 p-4">
+      <div className="grid gap-4 sm:grid-cols-3 sm:items-end">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.12em] text-mute-1">
+            SERV recommends
+          </p>
+          <Mono className="mt-1 block text-2xl leading-none text-ink-200">
+            {assessment.recommendedAllocationPercent}%
+          </Mono>
+        </div>
+
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.12em] text-mute-1">
+            Your policy allows
+          </p>
+          <Mono className="mt-1 block text-2xl leading-none text-ink-200">
+            {policy ? `${policy.maxAllocationPercent}%` : "—"}
+          </Mono>
+        </div>
+
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.12em] text-mute-1">
+            Policy verdict
+          </p>
+          <span
+            className={clsx(
+              "mt-1 block font-mono text-2xl leading-none tracking-tight",
+              refused ? "text-reject-400" : "text-approve-400",
+            )}
+          >
+            <span aria-hidden="true">{refused ? "× " : "✓ "}</span>
+            {refused ? "REFUSED" : "ALLOWED"}
+          </span>
+        </div>
+      </div>
+
+      {refused && rule ? (
+        <p className="mt-4 border-t border-ink-800 pt-3 text-[13px] leading-relaxed text-ink-200">
+          <span className="text-mute-1">Deciding rule: </span>
+          {rule.title}
+          <Mono className="ml-2 text-[11px] text-reject-400/90">{code}</Mono>
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 export function ServVsPolicy({
   assessment,
   assessmentError,
   assessing,
   verdict,
   evaluating,
+  policy,
 }: {
   assessment: Assessment | null;
   assessmentError: string | null;
   assessing: boolean;
   verdict: Verdict | null;
   evaluating: boolean;
+  /** The active policy, so the comparison can name the limit it hit. */
+  policy: Policy | null;
 }) {
   const reduce = useReducedMotion();
   const conflict = disagrees(assessment, verdict);
 
   return (
     <div className="space-y-3">
+      {assessment && verdict ? (
+        <Contrast assessment={assessment} verdict={verdict} policy={policy} />
+      ) : null}
+
       <div className="grid gap-3 lg:grid-cols-2">
         {/* ── SERV ─────────────────────────────────────────────────── */}
         <Card className="flex flex-col">

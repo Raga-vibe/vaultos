@@ -348,6 +348,7 @@ export function PolicyPanel({
   onRetry,
   editable = true,
   compact = false,
+  headingLevel = "h2",
 }: {
   policy: Policy | null;
   isDefault: boolean;
@@ -365,6 +366,8 @@ export function PolicyPanel({
    * links to the rest.
    */
   compact?: boolean;
+  /** h1 on the Policy page, which this heading opens; h2 in the summary. */
+  headingLevel?: "h1" | "h2";
 }) {
   const reduce = useReducedMotion();
   const [editing, setEditing] = useState(false);
@@ -420,6 +423,7 @@ export function PolicyPanel({
   return (
     <div className="space-y-3">
       <SectionHeader
+        as={headingLevel}
         title="Your policy rules"
         subtitle="The boundaries you set. Checked on every single move, by code that has never read a word the AI wrote and cannot be argued with."
         trailing={

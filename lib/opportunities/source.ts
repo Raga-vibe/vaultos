@@ -44,7 +44,6 @@ export const BASE_SEPOLIA_WETH =
 /** USDC and EURC both use six decimals; WETH uses eighteen. */
 export const USDC_DECIMALS = 6;
 export const EURC_DECIMALS = 6;
-export const WETH_DECIMALS = 18;
 
 /**
  * Where a record's facts came from.

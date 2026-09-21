@@ -78,16 +78,6 @@ export function formatBps(bps: number | null | undefined): string {
   return `${(bps / 100).toFixed(2)}%`;
 }
 
-/**
- * Turns a policy violation code into a readable phrase.
- *
- * The raw code is always shown alongside this — it is the precise thing, and
- * a judge reading the screen should be able to find it in the source. This is
- * the gloss, not a replacement.
- *
- * @param code - The violation code.
- * @returns A short human phrase.
- */
 export function explainViolation(code: string): string {
   const table: Record<string, string> = {
     ALLOCATION_EXCEEDS_CAP: "Over the per-action allocation cap",

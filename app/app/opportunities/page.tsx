@@ -10,15 +10,15 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { OpportunityCard } from "../../components/opportunities/OpportunityCard";
-import { Workbench } from "../../components/decision/Workbench";
+import { OpportunityCard } from "../../../components/opportunities/OpportunityCard";
+import { Workbench } from "../../../components/decision/Workbench";
 import {
   ErrorNote,
   Reveal,
   SectionHeader,
   Skeleton,
-} from "../../components/ui/primitives";
-import { api, useAsync, type Verdict } from "../../lib/ui/api";
+} from "../../../components/ui/primitives";
+import { api, useAsync, type Verdict } from "../../../lib/ui/api";
 
 /** A nominal amount used only to produce a comparable verdict per card. */
 const PROBE_AMOUNT = "0.01";
@@ -92,8 +92,9 @@ export default function Opportunities() {
     <div className="space-y-8">
       <Reveal>
         <SectionHeader
-          title="Choose an opportunity to review"
-          subtitle={`Six made-up examples, each already checked against your rules at ${PROBE_AMOUNT}. Three pass. Three are refused — each by a different rule. Pick any one to take it through the full decision.`}
+          as="h1"
+          title="Review an opportunity"
+          subtitle={`Choose one and VaultOS will assess it, check it against your policy, and show you the resulting decision. Each card below has already been checked at ${PROBE_AMOUNT} USDC — three pass, three are refused, each by a different rule.`}
         />
 
         {list.error ? (

@@ -59,6 +59,42 @@ Keys: SERV from <https://console.openserv.ai/settings/keys>, CDP from the
 Coinbase Developer Platform. Every variable is server-side. Nothing here is
 ever prefixed `NEXT_PUBLIC_`.
 
+## Deploying
+
+Vercel, Node 24. Two things are not optional, and neither is discoverable from
+the code alone — the second one lives in the dashboard, not in this repo.
+
+**1. `engines` picks the Node version.**
+
+```json
+{ "engines": { "node": "24.x" } }
+```
+
+This *overrides* the Node.js Version chosen in Vercel's project settings, not
+the other way round. Do not lower it.
+
+**2. `NODE_OPTIONS=--experimental-require-module` must be set as a project
+environment variable**, in Project Settings → Environment Variables, for every
+environment you deploy. Without it every route that touches a wallet returns a
+500 and the deployment looks completely broken. See gotcha (f) for why.
+
+Environment variable changes do not apply to an existing build. Redeploy after
+setting it.
+
+**Verifying it took.** `GET /api/health` reports the runtime it is actually
+running on, on both the success and the failure path:
+
+```json
+{"runtime": {"node": "v24.20.0",
+             "versionSupportsRequireEsm": true,
+             "requireModuleEnabled": true}}
+```
+
+`requireModuleEnabled` is `process.features.require_module` — what Node says
+about itself, not what the version number implies. **If it reads `false`, the
+environment variable is missing or the build predates it.** That one field is
+the difference between a five-minute fix and an afternoon.
+
 ## Commands
 
 ```bash
@@ -76,7 +112,7 @@ npm run build
 npm run dev                     # then: curl localhost:3000/api/health
 ```
 
-## Five gotchas — do not undo these fixes
+## Six gotchas — do not undo these fixes
 
 **(a) `configureWithWallet()` creates a NEW wallet when called without an
 `address`.** Verified in the installed package's compiled source:
@@ -135,6 +171,36 @@ failures still crash loudly. node_modules is deliberately not patched — that
 would vanish on the next `npm install`.
 
 Also: no `next/font/google` — it fetches at build time.
+
+**(f) Vercel disables `require(esm)`, and the version number will lie to you
+about it.** `@coinbase/agentkit` is published as CommonJS only — no `import`
+condition, no `module` field. Its CommonJS requires `@coinbase/cdp-sdk`'s
+CommonJS build, which requires `jose`, and jose 6 is ESM-only:
+
+```
+@coinbase/agentkit (CJS) → @coinbase/cdp-sdk/_cjs → jose@6 (ESM)
+```
+
+Loading AgentKit therefore needs `require(esm)`, added in Node 20.19 and 22.12.
+Vercel's functions report Node **24.20** and still throw `ERR_REQUIRE_ESM`,
+because the platform disables the feature regardless of version. Pinning a
+newer Node does not help — that was the first wrong diagnosis here, and it cost
+hours.
+
+Vercel documents the opt-in: set `NODE_OPTIONS=--experimental-require-module`
+as a project environment variable and redeploy. That is the whole fix; there is
+no code change.
+
+Do not try to solve this by pinning packages. jose is only the first ESM-only
+module the chain reaches — this tree contains **63** of them, so overriding
+them one at a time is endless. And do not remove `serverExternalPackages` to
+bundle the SDKs instead: that build now *succeeds*, then dies at runtime on
+`TypeError: Z is not a function`, which is gotcha (d) wearing a different hat.
+
+`/api/health` exists in its current shape because of this bug. When a module
+fails to load, the version number is the least useful fact available and
+`process.features.require_module` is the most useful, so the endpoint reports
+both — see Deploying.
 
 **Open question — `export const runtime = "nodejs"`.** Server routes declare it
 explicitly, per the project brief. But Next 16's own bundled documentation
@@ -213,11 +279,13 @@ types.
 
 Proven offline:
 
-- 128 unit tests pass
+- 134 unit tests pass
 - `tsc --noEmit` clean, eslint clean, `next build` succeeds
 - `spike:serv-invalid` passes 17/17: 11 malformed-response cases rejected,
   plus the fail-closed assertions
-- Gotcha (d) reproduced and confirmed fixed
+- Gotchas (d) and (f) reproduced and confirmed fixed — (f) by running the
+  production build under `NODE_OPTIONS=--no-experimental-require-module`,
+  which reproduces Vercel's runtime exactly
 - No credential variable names in the client bundle; no `NEXT_PUBLIC_` anywhere
 
 Proven on chain (20 September 2026, Base Sepolia):
@@ -240,7 +308,7 @@ Milestone 1 is complete. Nothing in this repo is simulated.
 
 | Route | Does |
 |---|---|
-| `GET /api/health` | Wallet smoke test; reports which store is active |
+| `GET /api/health` | Wallet smoke test; reports the serving Node runtime and which store is active |
 | `GET /api/wallet` | Address, network, native and USDC balances |
 | `GET /api/opportunities` | The opportunity records |
 | `GET /api/policy` | Current policy, or the conservative default |
@@ -366,7 +434,8 @@ spending from the very limit meant to bound it.
 
 ## Roadmap
 
-Milestones 1-4 complete. Next: 5 UI.
+Milestones 1-5 complete. Deployed on Base Sepolia at
+<https://vaultos-rust.vercel.app>.
 
 No mainnet, leverage, multi-chain, trading strategies, yield optimization,
 background workers, multi-agent framework, auth UI or payments.

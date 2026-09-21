@@ -143,3 +143,25 @@ export const PLAIN_RULES: Record<
     why: "Always wins, even over the approved list.",
   },
 };
+
+/**
+ * The policy field behind each violation code.
+ *
+ * Lets the interface answer "refused by what?" with the setting the user can
+ * actually go and change, rather than only the code the engine emitted. Codes
+ * that arise from the request or the chain rather than from a rule are absent
+ * on purpose — there is no setting to point at for an empty wallet.
+ */
+export const RULE_FOR_CODE: Record<string, keyof typeof PLAIN_RULES> = {
+  ALLOCATION_EXCEEDS_CAP: "maxAllocationPercent",
+  RISK_ABOVE_MAX: "maxRisk",
+  LIQUIDITY_BELOW_MIN: "minLiquidity",
+  LEVERAGE_NOT_ALLOWED: "leverageAllowed",
+  TOTAL_EXPOSURE_EXCEEDED: "maxTotalExposurePercent",
+  RESERVE_BREACHED: "minReserveAtomic",
+  DAILY_ACTION_LIMIT_REACHED: "maxActionsPerDay",
+  DAILY_DEPLOY_CAP_EXCEEDED: "maxDailyDeployedPercent",
+  COOLDOWN_ACTIVE: "cooldownSeconds",
+  PROTOCOL_NOT_ALLOWED: "allowedProtocols",
+  PROTOCOL_BLOCKED: "blockedProtocols",
+};

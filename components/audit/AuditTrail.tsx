@@ -11,6 +11,7 @@
 
 import clsx from "clsx";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import Link from "next/link";
 import { useState } from "react";
 import { Card, CopyButton, ErrorNote, Mono, Pill, Skeleton, type Tone } from "../ui/primitives";
 import { formatTime } from "../../lib/ui/format";
@@ -218,7 +219,10 @@ export function AuditTrail({
 
   if (loading || !events) {
     return (
-      <Card className="p-4">
+      <Card className="p-4" aria-busy="true">
+        <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-mute-1">
+          Loading audit trail&hellip;
+        </p>
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="mb-3 h-12 w-full" />
         ))}
@@ -227,13 +231,23 @@ export function AuditTrail({
   }
 
   if (events.length === 0) {
+    // An empty state says what is empty, why, and what to do about it. The
+    // third part is the one usually missing, and it is the only part that
+    // moves anybody forward.
     return (
       <Card className="px-4 py-10 text-center">
-        <p className="text-sm text-mute-1">Nothing recorded yet.</p>
-        <p className="mx-auto mt-1 max-w-sm text-[12px] leading-relaxed text-mute-3">
-          Check an opportunity and it shows up here — what was asked, what was
-          decided, and which rule decided it.
+        <p className="text-sm text-ink-200">No activity yet.</p>
+        <p className="mx-auto mt-1.5 max-w-sm text-[12px] leading-relaxed text-mute-1">
+          Nothing has been assessed or decided on this wallet. Review an
+          opportunity to create your first audit record.
         </p>
+        <Link
+          href="/app/opportunities"
+          className="mt-5 inline-flex items-center gap-2 rounded border border-approve-500/45 bg-approve-950/40 px-3.5 py-2 text-[13px] font-medium text-approve-400 transition-colors hover:border-approve-500 hover:bg-approve-950/70"
+        >
+          Review an opportunity
+          <span aria-hidden="true">→</span>
+        </Link>
       </Card>
     );
   }

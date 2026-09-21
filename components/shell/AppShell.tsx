@@ -16,10 +16,10 @@ import type { ReactNode } from "react";
 import { Brand, BrandMark, Wordmark } from "./Brand";
 
 const NAV = [
-  { href: "/", label: "Overview", glyph: "◎" },
-  { href: "/opportunities", label: "Opportunities", glyph: "◈" },
-  { href: "/policy", label: "Policy", glyph: "▤" },
-  { href: "/activity", label: "Activity", glyph: "≡" },
+  { href: "/app", label: "Overview", glyph: "◎" },
+  { href: "/app/opportunities", label: "Opportunities", glyph: "◈" },
+  { href: "/app/policy", label: "Policy", glyph: "▤" },
+  { href: "/app/activity", label: "Activity", glyph: "≡" },
 ] as const;
 
 /**
@@ -30,7 +30,7 @@ const NAV = [
  * @returns Whether it is active.
  */
 function isActive(href: string, pathname: string): boolean {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  return href === "/app" ? pathname === "/app" : pathname.startsWith(href);
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -42,7 +42,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Desktop rail */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-ink-800 bg-ink-900/60 lg:flex">
         <div className="border-b border-ink-800 px-5 py-5">
-          <Link href="/" className="block">
+          <Link href="/app" className="block">
             <Brand size={18} textClassName="text-[15px]" />
             <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-mute-2">
               Autonomous finance, with boundaries
@@ -84,22 +84,30 @@ export function AppShell({ children }: { children: ReactNode }) {
           </ul>
         </nav>
 
-        <div className="border-t border-ink-800 px-5 py-4">
+        <div className="space-y-3 border-t border-ink-800 px-5 py-4">
           <p className="font-mono text-[10px] leading-relaxed text-mute-2">
             Base Sepolia
             <br />
             Test network — no real money
           </p>
+          <Link
+            href="/"
+            className="block font-mono text-[10px] uppercase tracking-wider text-mute-2 transition-colors hover:text-ink-100"
+          >
+            ← About VaultOS
+          </Link>
         </div>
       </aside>
 
       {/* Mobile header */}
-      <header className="sticky top-0 z-30 border-b border-ink-800 bg-ink-950/90 backdrop-blur lg:hidden">
+      <header className="sticky top-0 z-30 border-b border-ink-800 bg-ink-950 lg:hidden">
         <div className="flex items-center gap-2 px-4 py-3">
-          <BrandMark size={16} />
-          <Wordmark className="text-sm" />
-          <span className="ml-auto font-mono text-[10px] uppercase tracking-wider text-mute-2">
-            Base Sepolia
+          <Link href="/" className="flex items-center gap-2" aria-label="About VaultOS">
+            <BrandMark size={16} />
+            <Wordmark className="text-sm" />
+          </Link>
+          <span className="ml-auto font-mono text-[10px] uppercase tracking-wider text-warn-400">
+            Testnet
           </span>
         </div>
       </header>
@@ -112,9 +120,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         <footer className="mx-auto w-full max-w-6xl border-t border-ink-800 px-4 py-6 sm:px-6 lg:px-10">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <span className="font-mono text-[11px] text-mute-3">
-              VaultOS · Base Sepolia · test network
+              VaultOS · Base Sepolia · test network, no real money
             </span>
             <nav className="ml-auto flex gap-5" aria-label="Legal">
+              <Link
+                href="/about"
+                className="font-mono text-[11px] uppercase tracking-wider text-mute-2 hover:text-ink-100"
+              >
+                About
+              </Link>
               <Link
                 href="/privacy"
                 className="font-mono text-[11px] uppercase tracking-wider text-mute-2 hover:text-ink-100"
@@ -135,7 +149,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile bottom bar */}
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-800 bg-ink-900/95 backdrop-blur lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-800 bg-ink-900 lg:hidden"
       >
         <ul className="grid grid-cols-4">
           {NAV.map((item) => {
