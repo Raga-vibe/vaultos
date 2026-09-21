@@ -21,7 +21,7 @@
  */
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -77,6 +77,22 @@ export function Workbench({
   const health = useAsync(() => api.health(), []);
   const canReachChain = health.data?.depositAddressConfigured !== false;
 
+  /*
+    Which attempt owns the state.
+
+    Changing the amount invalidates the assessment and the verdict, but an
+    already-dispatched request does not stop — it settles later and writes its
+    answer over the cleared state. The user then reads a verdict for an amount
+    they are no longer proposing. Every dispatch claims a token; only the
+    current one may write.
+
+    `sending` is separate and deliberately a ref, not state: React batches a
+    state update, so two clicks landing in the same tick both see
+    `executing === false` and both fire. A ref changes synchronously.
+  */
+  const attempt = useRef(0);
+  const sending = useRef(false);
+
   const [amount, setAmount] = useState("0.01");
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [assessmentError, setAssessmentError] = useState<string | null>(null);
@@ -100,6 +116,8 @@ export function Workbench({
    * component when the opportunity changes.
    */
   function invalidate() {
+    // Retires anything in flight so a late answer cannot land on a new amount.
+    attempt.current += 1;
     setAssessment(null);
     setAssessmentError(null);
     setEvaluation(null);
@@ -130,41 +148,58 @@ export function Workbench({
                 : "idle";
 
   const assess = useCallback(async () => {
+    const mine = ++attempt.current;
     setAssessing(true);
     setAssessmentError(null);
     try {
       const { assessment: a } = await api.assess(opportunity.id);
+      if (attempt.current !== mine) return;
       setAssessment(a);
     } catch (e) {
+      if (attempt.current !== mine) return;
       setAssessmentError(e instanceof Error ? e.message : String(e));
     } finally {
-      setAssessing(false);
+      if (attempt.current === mine) setAssessing(false);
       onActivity?.();
     }
   }, [opportunity.id, onActivity]);
 
   const evaluate = useCallback(async () => {
+    const mine = ++attempt.current;
     setEvaluating(true);
     setEvaluateError(null);
     try {
-      setEvaluation(await api.evaluate(opportunity.id, amount));
+      const result = await api.evaluate(opportunity.id, amount);
+      if (attempt.current !== mine) return;
+      setEvaluation(result);
     } catch (e) {
+      if (attempt.current !== mine) return;
       setEvaluateError(e instanceof Error ? e.message : String(e));
     } finally {
-      setEvaluating(false);
+      if (attempt.current === mine) setEvaluating(false);
       onActivity?.();
     }
   }, [opportunity.id, amount, onActivity]);
 
   const execute = useCallback(async () => {
+    // Synchronous gate. Two clicks in one tick both read `executing === false`
+    // from batched state; only one gets past this ref.
+    if (sending.current) return;
+    sending.current = true;
+
+    const mine = ++attempt.current;
     setExecuting(true);
     setExecuteError(null);
     try {
-      setExecution(await api.execute(opportunity.id, amount));
+      const result = await api.execute(opportunity.id, amount);
+      if (attempt.current !== mine) return;
+      setExecution(result);
     } catch (e) {
+      if (attempt.current !== mine) return;
       setExecuteError(e instanceof Error ? e.message : String(e));
     } finally {
-      setExecuting(false);
+      sending.current = false;
+      if (attempt.current === mine) setExecuting(false);
       onActivity?.();
     }
   }, [opportunity.id, amount, onActivity]);

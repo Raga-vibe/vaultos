@@ -301,40 +301,54 @@ export function useAsync<T>(
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [nonce, setNonce] = useState(0);
-  const alive = useRef(true);
+
+  /*
+    Which request is allowed to write state.
+
+    The previous version guarded only on "is the component still mounted",
+    which is a different question. When deps change — a reload, a changed
+    amount — the earlier fetch is not cancelled, and if it settles second it
+    overwrites the newer answer with an older one. On a screen showing a
+    policy verdict that is not a cosmetic bug: it can show a verdict computed
+    against a balance or a policy that has since changed.
+
+    Each run claims a number. Only the newest may write.
+  */
+  const run = useRef(0);
 
   useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
+    const mine = ++run.current;
 
-  // The effect only starts work; every setState happens in a callback after
-  // the fetch settles. Setting state synchronously in an effect body would
-  // cascade an extra render on every mount.
-  useEffect(() => {
     fetcher()
       .then((value) => {
-        if (alive.current) {
-          setData(value);
-          setError(null);
-        }
+        if (run.current !== mine) return;
+        setData(value);
+        setError(null);
       })
       .catch((e: unknown) => {
-        if (alive.current) {
-          setError(e instanceof Error ? e.message : String(e));
-        }
+        if (run.current !== mine) return;
+        setError(e instanceof Error ? e.message : String(e));
       })
       .finally(() => {
-        if (alive.current) setLoading(false);
+        if (run.current !== mine) return;
+        setLoading(false);
       });
+
+    // Bumping the token on cleanup retires this run, so neither an unmount nor
+    // a superseded run can write.
+    return () => {
+      if (run.current === mine) run.current += 1;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, nonce]);
 
   // Reload is an event handler, so it may set state directly.
   const reload = useCallback(() => {
-    invalidateReads();
+    // Deliberately does NOT clear the whole read cache. Reloading one panel
+    // used to force every other panel's next read back to the network, which
+    // on a 1–6s RPC is the difference between a refresh and a stall. The
+    // nonce below re-runs THIS fetcher; mutations still call
+    // invalidateReads() for the reads they genuinely invalidate.
     setLoading(true);
     setError(null);
     setNonce((n) => n + 1);
