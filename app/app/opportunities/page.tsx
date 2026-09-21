@@ -94,8 +94,31 @@ export default function Opportunities() {
         <SectionHeader
           as="h1"
           title="Review an opportunity"
-          subtitle={`Choose one and VaultOS will assess it, check it against your policy, and show you the resulting decision. Each card below has already been checked at ${PROBE_AMOUNT} USDC — three pass, three are refused, each by a different rule.`}
+          subtitle="Six actions an autonomous agent might propose for your wallet. Pick one and watch your policy decide."
         />
+
+        {/*
+          A first-time reader treats "opportunity" as an investment offering
+          and starts hunting for the best one. There isn't one. Saying so
+          up front — and saying what the page is actually for — turns the grid
+          from a shop into a test bench, which is what it is.
+        */}
+        <div className="mb-6 rounded-lg border border-ink-700 bg-ink-900/60 p-4">
+          <p className="text-[13px] leading-relaxed text-ink-200">
+            <span className="text-mute-1">What this page is: </span>
+            a test bench, not a shop. None of these is a real investment and
+            none earns anything. Each one exists to make a different rule fire,
+            so you can see your boundaries working before you trust them with
+            anything.
+          </p>
+          <p className="mt-2.5 text-[13px] leading-relaxed text-mute-1">
+            Every card is already checked against your current policy at{" "}
+            <span className="font-mono text-ink-200">{PROBE_AMOUNT} USDC</span>.
+            Three pass. Three are refused — one for being too risky, one for
+            locking your money up, one for borrowing. Open a refused one to see
+            exactly which rule stopped it.
+          </p>
+        </div>
 
         {list.error ? (
           <ErrorNote message={list.error} onRetry={list.reload} />

@@ -17,7 +17,12 @@ import clsx from "clsx";
 import { motion, useReducedMotion } from "motion/react";
 import { Card, Mono, Pill, Skeleton, type Tone } from "../ui/primitives";
 import { formatBps } from "../../lib/ui/format";
-import { plainLiquidity, plainRefusal, plainRisk } from "../../lib/ui/plain";
+import {
+  plainLiquidity,
+  plainRefusal,
+  plainRisk,
+  whatThisTests,
+} from "../../lib/ui/plain";
 import type { Opportunity, Verdict } from "../../lib/ui/api";
 
 function riskTone(band: string): Tone {
@@ -67,6 +72,13 @@ export function OpportunityCard({
           aria-label={`Review ${opportunity.name}`}
           className="flex flex-1 flex-col p-4 text-left"
         >
+          {/* First line on the card, before the name. A reader scanning six of
+              these needs to know what distinguishes them, and it is not the
+              protocol — it is which rule each one is here to exercise. */}
+          <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.12em] text-info-500">
+            Tests: {whatThisTests(opportunity)}
+          </p>
+
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h3 className="text-sm font-medium text-ink-50">
@@ -77,22 +89,24 @@ export function OpportunityCard({
               </p>
             </div>
 
-            {loading ? (
-              <Skeleton className="h-5 w-20" />
-            ) : verdict ? (
-              <Pill
-                tone={approved ? "approve" : "reject"}
-                title={
-                  approved
-                    ? "Every rule you set passed."
-                    : "A rule you set refused this. Nothing moved."
-                }
-              >
-                {approved ? "Allowed" : "Refused"}
-              </Pill>
-            ) : verdictError ? (
-              <Pill tone="warn">No verdict</Pill>
-            ) : null}
+            <div className="shrink-0">
+              {loading ? (
+                <Skeleton className="h-5 w-20" />
+              ) : verdict ? (
+                <Pill
+                  tone={approved ? "approve" : "reject"}
+                  title={
+                    approved
+                      ? "Every rule you set passed."
+                      : "A rule you set refused this. Nothing moved."
+                  }
+                >
+                  {approved ? "Allowed" : "Refused"}
+                </Pill>
+              ) : verdictError ? (
+                <Pill tone="warn">No verdict</Pill>
+              ) : null}
+            </div>
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-1.5">

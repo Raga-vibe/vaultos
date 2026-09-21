@@ -165,3 +165,34 @@ export const RULE_FOR_CODE: Record<string, keyof typeof PLAIN_RULES> = {
   PROTOCOL_NOT_ALLOWED: "allowedProtocols",
   PROTOCOL_BLOCKED: "blockedProtocols",
 };
+
+/**
+ * What a given opportunity is there to test.
+ *
+ * THE CONFUSION THIS EXISTS TO FIX
+ *
+ * "Opportunity" reads as an investment offering, so a first-time visitor
+ * arrives looking for the best one — and there is no best one. These are six
+ * proposed actions, and five of the six exist to make a specific rule fire.
+ * The point of clicking is not to find a good return; it is to watch a
+ * particular boundary do its job.
+ *
+ * Derived from the same three fields the engine reads, so it cannot drift
+ * away from what actually happens. It names what is being TESTED, never the
+ * outcome: a user who raised their risk ceiling to HIGH still has their risk
+ * limit tested by the volatile strategy — it just passes.
+ *
+ * @param o - Risk, liquidity and leverage, as the engine sees them.
+ * @returns A short label for what this case exercises.
+ */
+export function whatThisTests(o: {
+  risk: string;
+  liquidity: string;
+  usesLeverage: boolean;
+}): string {
+  if (o.usesLeverage) return "Your leverage rule";
+  if (o.risk === "HIGH") return "Your risk ceiling";
+  if (o.liquidity === "LOW") return "Your liquidity floor";
+  // Short enough to sit on one line beside the verdict pill.
+  return "The everyday case";
+}

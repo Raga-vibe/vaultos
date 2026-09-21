@@ -121,3 +121,56 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/*
+  The landing backdrop.
+
+  A fine engineering grid that fades to nothing before it reaches the content,
+  plus one soft radial that lifts the hero off the page. Both are painted
+  once, in CSS, on a fixed layer that never scrolls and never repaints — no
+  canvas, no particles, no JavaScript, and nothing for the compositor to do
+  after first paint.
+
+  The mask is what makes it read as precision rather than wallpaper: a grid
+  that runs edge to edge looks like a template, and one that dissolves looks
+  like a drawing surface.
+*/
+.landing-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* ink-750 rather than ink-850: masked and faded, the darker line vanished
+     entirely on a 1920px screen, which is the screen this exists for. */
+  background-image:
+    linear-gradient(var(--color-ink-750) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-ink-750) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center top;
+  -webkit-mask-image: radial-gradient(
+    ellipse 80% 55% at 50% 0%,
+    #000 0%,
+    transparent 75%
+  );
+  mask-image: radial-gradient(
+    ellipse 80% 55% at 50% 0%,
+    #000 0%,
+    transparent 75%
+  );
+  opacity: 0.75;
+}
+
+/* One restrained glow, the brand green, well under the type. */
+.landing-glow {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  height: 70vh;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 55% 60% at 50% 0%,
+    color-mix(in oklab, var(--color-approve-500) 11%, transparent) 0%,
+    transparent 70%
+  );
+}
