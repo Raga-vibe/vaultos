@@ -12,6 +12,14 @@ import { fail, ok, serverError } from "../../../lib/api/respond";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * A chain read behind this can be slow on the public Base Sepolia endpoint —
+ * measured at six to seven seconds — so the ceiling is raised above the
+ * platform default. This changes only how long we are willing to WAIT. A
+ * timeout still produces a system error, never a verdict.
+ */
+export const maxDuration = 30;
+
 /** How stale a previewed balance may be. Execution never uses this. */
 const PREVIEW_BALANCE_MAX_AGE_MS = 15_000;
 

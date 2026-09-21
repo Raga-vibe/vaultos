@@ -21,7 +21,7 @@
  */
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -44,6 +44,56 @@ import {
   type ExecuteResult,
   type Opportunity,
 } from "../../lib/ui/api";
+
+/**
+ * Seconds since a wait began, or null when nothing is waiting.
+ *
+ * WHY A COUNTER AND NOT JUST A SPINNER
+ *
+ * SERV takes around twenty seconds. Measured on the deployed site: 20.6s for
+ * a full structured assessment. That is long enough that a static label and a
+ * spinner are indistinguishable from a hung request — the user assumes it is
+ * broken, clicks again, and now believes it is definitely broken.
+ *
+ * A number that keeps moving says the opposite: something is still happening,
+ * and here is how long it has been. Paired with an expectation set before the
+ * click, twenty seconds stops reading as a fault and starts reading as a cost.
+ *
+ * @param active - Whether a wait is in progress.
+ * @returns Whole seconds elapsed, or null.
+ */
+function useElapsedSeconds(active: boolean): number | null {
+  const [seconds, setSeconds] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!active) return;
+
+    /*
+      Nothing is written synchronously here.
+
+      The effect body only starts a timer. Every write happens later, in the
+      interval callback — a timer synchronising back into React, which is what
+      effects are for. Setting state in the body would cascade a render on
+      every mount, and reading a ref during render is its own bug, so neither
+      is used.
+
+      The cleanup clears the number as well as the timer. Without that, the
+      previous wait's final count would sit in state and flash for a moment at
+      the start of the next one.
+    */
+    const startedAt = Date.now();
+    const id = setInterval(() => {
+      setSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 400);
+
+    return () => {
+      clearInterval(id);
+      setSeconds(null);
+    };
+  }, [active]);
+
+  return active ? seconds : null;
+}
 
 /**
  * What to say while a stage is in flight.
@@ -127,6 +177,9 @@ export function Workbench({
   }
 
   /** The stage the pipeline has genuinely reached. */
+  const waiting = assessing || evaluating || executing;
+  const elapsed = useElapsedSeconds(waiting);
+
   const stage: FlowStage = executing
     ? "executing"
     : execution?.transaction
@@ -264,7 +317,9 @@ export function Workbench({
           */}
           <div className="ml-auto flex flex-wrap gap-2">
             <Button onClick={assess} busy={assessing}>
-              Ask SERV
+              {assessing && elapsed !== null
+                ? `Asking SERV… ${elapsed}s`
+                : "Ask SERV"}
             </Button>
             <Button onClick={evaluate} busy={evaluating}>
               Check my rules
@@ -281,9 +336,9 @@ export function Workbench({
         </div>
 
         <p className="mt-3 text-[11px] leading-relaxed text-mute-2">
-SERV&rsquo;s opinion never becomes permission — that separation is what
-          makes it safe to point a reasoning model at a live wallet. Only the
-          rules check can approve, and sending stays locked until it does.
+          SERV&rsquo;s opinion never becomes permission — that separation is
+          what makes it safe to point a reasoning model at a live wallet. Only
+          the rules check can approve, and sending stays locked until it does.
         </p>
 
         {/* A missing destination is a deployment setting, not a refusal and
@@ -321,12 +376,17 @@ SERV&rsquo;s opinion never becomes permission — that separation is what
             className="mt-4 border-t border-ink-800 pt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-info-500"
           >
             {STAGE_LABEL[stage]}
+            {elapsed !== null && elapsed > 0 ? (
+              <span className="ml-2 text-mute-1">{elapsed}s</span>
+            ) : null}
           </p>
         ) : null}
       </Card>
 
       {/* A failed request is amber and says so. Red is reserved for refusals. */}
-      {evaluateError ? <ErrorNote message={evaluateError} onRetry={evaluate} /> : null}
+      {evaluateError ? (
+        <ErrorNote message={evaluateError} onRetry={evaluate} />
+      ) : null}
 
       <ServVsPolicy
         assessment={assessment}

@@ -201,10 +201,21 @@ export function ServVsPolicy({
 
           <div className="flex-1 p-4">
             {assessing ? (
-              <div className="space-y-3">
-                <Skeleton className="h-3 w-32" />
-                <Skeleton className="h-3 w-full" />
-                <Skeleton className="h-3 w-4/5" />
+              /* Named, and honest about the cost. A bare skeleton for twenty
+                 seconds is indistinguishable from a hung request. */
+              <div aria-busy="true">
+                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-info-500">
+                  SERV is reasoning&hellip;
+                </p>
+                <p className="mt-1.5 text-[12px] leading-relaxed text-mute-1">
+                  This usually takes about 20 seconds. Nothing is stuck — the
+                  model is working through the move.
+                </p>
+                <div className="mt-4 space-y-3">
+                  <Skeleton className="h-3 w-32" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-4/5" />
+                </div>
               </div>
             ) : assessmentError ? (
               /*

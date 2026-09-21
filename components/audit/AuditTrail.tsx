@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Card, CopyButton, ErrorNote, Mono, Pill, Skeleton, type Tone } from "../ui/primitives";
 import { formatTime } from "../../lib/ui/format";
+import { plainRefusal } from "../../lib/ui/plain";
 import type { AuditEvent } from "../../lib/ui/api";
 
 /**
@@ -125,9 +126,14 @@ function Row({ event }: { event: AuditEvent }) {
           ) : null}
 
           {event.verdict && event.verdict.violations.length > 0 ? (
-            <p className="mt-1.5 font-mono text-[11px] text-reject-400">
-              {event.verdict.violations.map((v) => v.code).join(", ")}
-            </p>
+            <div className="mt-1.5 space-y-0.5">
+              {event.verdict.violations.map((v) => (
+                <p key={v.code} className="text-[11px] leading-snug text-reject-400">
+                  {plainRefusal(v.code)}
+                  <Mono className="ml-1.5 text-[10px] text-mute-3">{v.code}</Mono>
+                </p>
+              ))}
+            </div>
           ) : null}
 
           {hash ? (
@@ -202,19 +208,63 @@ function Row({ event }: { event: AuditEvent }) {
   );
 }
 
+/**
+ * Views onto the trail.
+ *
+ * An audit log's problem is not density, it is that the interesting rows are
+ * buried among the routine ones. After a few minutes of use there are dozens
+ * of entries and the three that matter — the refusals and the confirmed
+ * transaction — are somewhere in the middle. These are not filters in the
+ * data sense; the underlying record is untouched and append-only. They are
+ * ways of looking at it.
+ *
+ * "Refusals" is first after All, because that is the view this product exists
+ * to produce.
+ */
+const VIEWS = [
+  { key: "all", label: "Everything" },
+  {
+    key: "refusals",
+    label: "Refusals",
+    match: (e: AuditEvent) => e.verdict?.decision === "REJECTED",
+  },
+  {
+    key: "decisions",
+    label: "Decisions",
+    match: (e: AuditEvent) => e.type === "POLICY_EVALUATED",
+  },
+  {
+    key: "chain",
+    label: "On chain",
+    match: (e: AuditEvent) =>
+      e.type === "EXECUTION_SUBMITTED" ||
+      e.type === "EXECUTION_CONFIRMED" ||
+      e.type === "EXECUTION_FAILED",
+  },
+  {
+    key: "serv",
+    label: "SERV",
+    match: (e: AuditEvent) => e.type.startsWith("ASSESSMENT_"),
+  },
+] as const;
+
 export function AuditTrail({
   events,
   loading,
   error,
   onRetry,
   limit,
+  filterable = false,
 }: {
   events: AuditEvent[] | null;
   loading: boolean;
   error: string | null;
   onRetry?: () => void;
   limit?: number;
+  /** Show the view switcher. Off for the five-row summary on Overview. */
+  filterable?: boolean;
 }) {
+  const [view, setView] = useState<string>("all");
   if (error) return <ErrorNote message={error} onRetry={onRetry} />;
 
   if (loading || !events) {
@@ -252,15 +302,58 @@ export function AuditTrail({
     );
   }
 
-  const shown = limit ? events.slice(-limit).reverse() : [...events].reverse();
+  const active = VIEWS.find((v) => v.key === view) ?? VIEWS[0];
+  const matched =
+    "match" in active && active.match
+      ? events.filter(active.match)
+      : events;
+
+  const shown = limit
+    ? matched.slice(-limit).reverse()
+    : [...matched].reverse();
 
   return (
-    <Card className="overflow-hidden">
-      <ul>
-        {shown.map((e) => (
-          <Row key={`${e.seq}-${e.at}`} event={e} />
-        ))}
-      </ul>
-    </Card>
+    <div>
+      {filterable ? (
+        <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label="Filter the trail">
+          {VIEWS.map((v) => {
+            const count =
+              "match" in v && v.match ? events.filter(v.match).length : events.length;
+            const selected = v.key === view;
+            return (
+              <button
+                key={v.key}
+                type="button"
+                onClick={() => setView(v.key)}
+                aria-pressed={selected}
+                className={clsx(
+                  "rounded border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors",
+                  selected
+                    ? "border-ink-500 bg-ink-800 text-ink-50"
+                    : "border-ink-700 text-mute-1 hover:border-ink-600 hover:text-ink-200",
+                )}
+              >
+                {v.label}
+                <span className="ml-1.5 text-mute-2">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
+      <Card className="overflow-hidden">
+        {shown.length === 0 ? (
+          <p className="px-4 py-8 text-center text-[13px] text-mute-1">
+            Nothing recorded under &ldquo;{active.label}&rdquo; yet.
+          </p>
+        ) : (
+          <ul>
+            {shown.map((e) => (
+              <Row key={`${e.seq}-${e.at}`} event={e} />
+            ))}
+          </ul>
+        )}
+      </Card>
+    </div>
   );
 }

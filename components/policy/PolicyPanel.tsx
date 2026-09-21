@@ -97,6 +97,45 @@ function GroupHeading({ title, blurb }: { title: string; blurb: string }) {
   );
 }
 
+/**
+ * One rule as a tile, for the summary.
+ *
+ * The full page shows every rule as a row with its question and its reason,
+ * which is right when you are deciding what to change. On Overview it was
+ * wrong: five stacked rows pushed the wallet, the activity and everything
+ * below them off the screen, so a glance at "what am I currently allowing"
+ * cost a scroll. Same five rules, same values, arranged so they fit in one
+ * look. The reasoning stays one click away on the Policy page.
+ */
+function RuleTile({
+  field,
+  value,
+  tone = "neutral",
+}: {
+  field: keyof typeof PLAIN_RULES;
+  value: string;
+  tone?: "neutral" | "approve" | "warn" | "reject";
+}) {
+  const plain = PLAIN_RULES[field];
+
+  return (
+    <div className="flex min-h-[104px] flex-col justify-between bg-ink-900 p-3.5">
+      <p className="text-[11px] leading-snug text-mute-1">{plain.title}</p>
+      <Mono
+        className={clsx(
+          "mt-3 block text-[15px] leading-tight",
+          tone === "approve" && "text-approve-400",
+          tone === "warn" && "text-warn-400",
+          tone === "reject" && "text-reject-400",
+          tone === "neutral" && "text-ink-50",
+        )}
+      >
+        {value}
+      </Mono>
+    </div>
+  );
+}
+
 /** A labelled control in the editor. */
 function Control({
   label,
@@ -540,6 +579,33 @@ export function PolicyPanel({
 
       {saveError ? <ErrorNote message={saveError} /> : null}
 
+      {/* The summary is a grid; the full page keeps the explanatory rows. */}
+      {compact && (!editing || !draft) ? (
+        <Card className="overflow-hidden">
+          <div className="grid grid-cols-2 gap-px bg-ink-800 sm:grid-cols-3 lg:grid-cols-5">
+            <RuleTile
+              field="maxAllocationPercent"
+              value={`${p.maxAllocationPercent}%`}
+            />
+            <RuleTile
+              field="maxRisk"
+              value={p.maxRisk}
+              tone={p.maxRisk === "HIGH" ? "warn" : "neutral"}
+            />
+            <RuleTile field="minLiquidity" value={p.minLiquidity} />
+            <RuleTile
+              field="leverageAllowed"
+              value={p.leverageAllowed ? "ALLOWED" : "NEVER"}
+              tone={p.leverageAllowed ? "warn" : "approve"}
+            />
+            <RuleTile
+              field="autoExecute"
+              value={p.autoExecute ? "ON ITS OWN" : "ASKS YOU"}
+              tone={p.autoExecute ? "warn" : "approve"}
+            />
+          </div>
+        </Card>
+      ) : (
       <Card>
         {!editing || !draft ? (
           <>
@@ -836,6 +902,7 @@ export function PolicyPanel({
           </>
         )}
       </Card>
+      )}
     </div>
   );
 }

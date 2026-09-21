@@ -37,6 +37,7 @@ export default function Activity() {
           loading={audit.loading}
           error={audit.error}
           onRetry={audit.reload}
+          filterable
         />
       </Reveal>
     </div>

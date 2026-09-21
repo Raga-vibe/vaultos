@@ -49,6 +49,11 @@ export async function GET() {
       depositAddressConfigured: Boolean(
         process.env.OPPORTUNITY_DEPOSIT_ADDRESS?.trim(),
       ),
+      // A boolean, never the URL. A dedicated endpoint is the difference
+      // between a seven-second chain read and a fast one, and "did the env
+      // var actually land on this deployment" is otherwise unanswerable
+      // without reading the dashboard.
+      rpcConfigured: Boolean(process.env.RPC_URL?.trim()),
     });
   } catch (error) {
     // The runtime goes out on the failure path above all, because a failure

@@ -34,18 +34,27 @@ export default function Opportunities() {
 
   const opportunities = list.data?.opportunities;
 
-  // Evaluations run TWO AT A TIME, not all six at once.
+  // Evaluations run in parallel, with a ceiling.
   //
-  // Each one costs an RPC read of the on-chain balance, and the public Base
-  // Sepolia endpoint rate-limits. Firing six in parallel — doubled again by
-  // React's development double-render — turned a page load into minutes. A
-  // small concurrency limit keeps it responsive on a modest connection, and
-  // results are written as they arrive so cards fill in progressively rather
-  // than the whole grid waiting for the slowest one.
+  // Each one costs an RPC read of the on-chain balance. On the public Base
+  // Sepolia endpoint that read measured six to seven seconds and the endpoint
+  // rate-limits, so this used to run two at a time — six serialised reads is
+  // slow, but six rate-limited ones is slower. With a dedicated RPC endpoint
+  // configured (RPC_URL), the reads are fast and the rate limit is generous,
+  // so the whole grid can go at once.
+  //
+  // The ceiling stays because it is what keeps a future change — more cards,
+  // a worse endpoint — from turning this back into a stampede. Results are
+  // written as they arrive, so cards fill in progressively rather than the
+  // grid waiting on the slowest one.
+  //
+  // Nothing about this affects safety. Every probe is a dry run: POST
+  // /api/evaluate builds the canonical action server-side, runs the engine,
+  // and returns a verdict. It executes nothing and records no execution.
   useEffect(() => {
     if (!opportunities) return;
     let cancelled = false;
-    const CONCURRENCY = 2;
+    const CONCURRENCY = 6;
     const queue = [...opportunities];
 
     async function worker() {
