@@ -27,6 +27,7 @@ import {
 } from "../ui/primitives";
 import { formatAtomic, formatSeconds } from "../../lib/ui/format";
 import { PLAIN_RULES } from "../../lib/ui/plain";
+import { DEFAULT_POLICY } from "../../lib/policy/defaults";
 import { api, type Band, type Policy } from "../../lib/ui/api";
 
 const BANDS: Band[] = ["LOW", "MEDIUM", "HIGH"];
@@ -376,6 +377,16 @@ export function PolicyPanel({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
+  /*
+    Reset needs a second click, not a browser dialog.
+
+    The policy is shared and now persists, so one stray click could wipe rules
+    someone else set. A confirm step makes that deliberate — and an inline one
+    keeps it in the page, where the consequence is still visible, rather than
+    in a modal that covers it up.
+  */
+  const [confirmingReset, setConfirmingReset] = useState(false);
+
   useEffect(() => {
     if (savedAt === null) return;
     const t = setTimeout(() => setSavedAt(null), 2600);
@@ -463,14 +474,56 @@ export function PolicyPanel({
                   </Button>
                 </>
               ) : (
-                <Button
-                  onClick={() => {
-                    setDraft(policy);
-                    setEditing(true);
-                  }}
-                >
-                  Edit
-                </Button>
+                <>
+                  {/* Only offered once the stored policy differs from the
+                      shipped one — there is nothing to restore otherwise. */}
+                  {!isDefault ? (
+                    confirmingReset ? (
+                      <>
+                        <Button onClick={() => setConfirmingReset(false)}>
+                          Keep mine
+                        </Button>
+                        <Button
+                          tone="reject"
+                          busy={saving}
+                          onClick={async () => {
+                            setSaving(true);
+                            setSaveError(null);
+                            try {
+                              const { policy: saved } = await api.savePolicy(
+                                DEFAULT_POLICY as Policy,
+                              );
+                              onSaved?.(saved);
+                              setConfirmingReset(false);
+                              setSavedAt(Date.now());
+                            } catch (e) {
+                              setSaveError(
+                                e instanceof Error ? e.message : String(e),
+                              );
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                        >
+                          Yes, restore defaults
+                        </Button>
+                      </>
+                    ) : (
+                      <Button onClick={() => setConfirmingReset(true)}>
+                        Restore defaults
+                      </Button>
+                    )
+                  ) : null}
+
+                  <Button
+                    onClick={() => {
+                      setDraft(policy);
+                      setEditing(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </>
               )}
             </div>
           ) : undefined

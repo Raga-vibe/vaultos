@@ -85,6 +85,14 @@ export default function Opportunities() {
     setProbeNonce((n) => n + 1);
   }, []);
 
+  // What the six cards actually say, for the sentence above them.
+  const decided = Object.values(verdicts ?? {})
+    .map((v) => v.verdict?.decision)
+    .filter((d): d is "APPROVED" | "REJECTED" => Boolean(d));
+  const passed = decided.filter((d) => d === "APPROVED").length;
+  const refused = decided.length - passed;
+  const counted = decided.length;
+
   const chosen =
     list.data?.opportunities.find((o) => o.id === selected) ?? null;
 
@@ -111,12 +119,28 @@ export default function Opportunities() {
             so you can see your boundaries working before you trust them with
             anything.
           </p>
+          {/*
+            Counted, not asserted.
+
+            This used to read "three pass, three are refused", which is true of
+            the shipped defaults and false the moment anyone edits a rule — and
+            the policy now persists, so an edited rule outlives the visit that
+            made it. A sentence that contradicts the six cards under it costs
+            more trust than it buys.
+          */}
           <p className="mt-2.5 text-[13px] leading-relaxed text-mute-1">
             Every card is already checked against your current policy at{" "}
             <span className="font-mono text-ink-200">{PROBE_AMOUNT} USDC</span>.
-            Three pass. Three are refused — one for being too risky, one for
-            locking your money up, one for borrowing. Open a refused one to see
-            exactly which rule stopped it.
+            {counted > 0 ? (
+              <>
+                {" "}
+                Right now <span className="text-ink-200">{passed} pass</span>{" "}
+                and <span className="text-ink-200">{refused} are refused</span>.
+                Open a refused one to see exactly which rule stopped it.
+              </>
+            ) : (
+              " Open a refused one to see exactly which rule stopped it."
+            )}
           </p>
         </div>
 
