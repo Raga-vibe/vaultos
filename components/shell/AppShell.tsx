@@ -14,6 +14,7 @@ import { usePathname } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
 import { Brand, BrandMark, Wordmark } from "./Brand";
+import { Footer } from "./Footer";
 
 const NAV = [
   { href: "/app", label: "Overview", glyph: "◎" },
@@ -117,33 +118,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {children}
         </div>
 
-        <footer className="mx-auto w-full max-w-6xl border-t border-ink-800 px-4 py-6 sm:px-6 lg:px-10">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <span className="font-mono text-[11px] text-mute-3">
-              VaultOS · Base Sepolia · test network, no real money
-            </span>
-            <nav className="ml-auto flex gap-5" aria-label="Legal">
-              <Link
-                href="/about"
-                className="font-mono text-[11px] uppercase tracking-wider text-mute-2 hover:text-ink-100"
-              >
-                About
-              </Link>
-              <Link
-                href="/privacy"
-                className="font-mono text-[11px] uppercase tracking-wider text-mute-2 hover:text-ink-100"
-              >
-                Privacy
-              </Link>
-              <Link
-                href="/terms"
-                className="font-mono text-[11px] uppercase tracking-wider text-mute-2 hover:text-ink-100"
-              >
-                Terms
-              </Link>
-            </nav>
-          </div>
-        </footer>
+        <Footer variant="app" />
       </main>
 
       {/* Mobile bottom bar */}

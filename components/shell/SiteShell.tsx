@@ -19,6 +19,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Brand } from "./Brand";
+import { Footer } from "./Footer";
 
 const LINKS = [
   { href: "/#how-it-works", label: "How it works" },
@@ -69,27 +70,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t border-ink-800">
-        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-6 sm:px-6">
-          <span className="font-mono text-[11px] text-mute-2">
-            VaultOS · Base Sepolia · test network, no real money
-          </span>
-          <nav className="ml-auto flex gap-5" aria-label="Legal">
-            <Link
-              href="/privacy"
-              className="font-mono text-[11px] uppercase tracking-wider text-mute-2 hover:text-ink-100"
-            >
-              Privacy
-            </Link>
-            <Link
-              href="/terms"
-              className="font-mono text-[11px] uppercase tracking-wider text-mute-2 hover:text-ink-100"
-            >
-              Terms
-            </Link>
-          </nav>
-        </div>
-      </footer>
+      <Footer variant="site" />
     </div>
   );
 }
