@@ -35,6 +35,14 @@ import { getStore } from "../../../lib/store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * Seconds this route may run before the host terminates it.
+ *
+ * This route submits a transaction and then waits for a block to confirm
+ * it. Block time is not ours to control, so the budget has to cover it.
+ */
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   try {
     const raw = await request.json().catch(() => null);

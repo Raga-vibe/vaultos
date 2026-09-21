@@ -189,7 +189,7 @@ export function ServVsPolicy({
         <Contrast assessment={assessment} verdict={verdict} policy={policy} />
       ) : null}
 
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
         {/* ── SERV ─────────────────────────────────────────────────── */}
         <Card className="flex flex-col">
           <PanelHeading
@@ -207,9 +207,31 @@ export function ServVsPolicy({
                 <Skeleton className="h-3 w-4/5" />
               </div>
             ) : assessmentError ? (
-              <p className="font-mono text-xs text-reject-400">
-                × {assessmentError}
-              </p>
+              /*
+                A failed assessment is amber, never red, and it says out loud
+                that nothing downstream depends on it. Red here would be a
+                double lie: it would read as a policy refusal, and it would
+                imply the decision is now blocked. Neither is true — SERV is
+                advisory, so the policy verdict is exactly what it would have
+                been had nobody asked the model at all.
+              */
+              <div
+                role="alert"
+                className="rounded border border-warn-500/35 bg-warn-950/25 p-3"
+              >
+                <p className="text-[13px] font-medium text-warn-400">
+                  <span aria-hidden="true">! </span>
+                  Couldn&rsquo;t get an assessment
+                </p>
+                <p className="mt-1.5 text-[12px] leading-relaxed text-ink-200">
+                  This is a system error, not a decision. SERV is advisory, so
+                  your policy verdict is unaffected — you can check your rules
+                  and execute without it.
+                </p>
+                <p className="mt-2 break-words font-mono text-[11px] leading-relaxed text-mute-1">
+                  {assessmentError}
+                </p>
+              </div>
             ) : !assessment ? (
               <p className="text-sm leading-relaxed text-mute-2">
                 Nothing asked yet. The AI only speaks when you press

@@ -150,11 +150,27 @@ type Envelope<T> = ({ ok: true } & T) | { ok: false; error: string };
  * @throws With the server's message when ok is false.
  */
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      ...init,
+      headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+      cache: "no-store",
+    });
+  } catch (error) {
+    /*
+      fetch only rejects when the request never completed at all — the
+      connection dropped, the host cut the function off, or the network went
+      away. The browser's own wording for this is "Failed to fetch", which
+      names no component and suggests nothing to do about it. Say what it
+      actually means instead.
+    */
+    throw new Error(
+      `${path} never returned. The connection dropped before a response ` +
+        `arrived — usually the request taking longer than the server allows. ` +
+        `Nothing was decided and nothing moved. (${String(error)})`,
+    );
+  }
 
   let body: Envelope<T>;
   try {
@@ -167,16 +183,69 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
   return body as unknown as T;
 }
 
+/**
+ * A short-lived cache for READ-ONLY display data.
+ *
+ * Every route that touches the chain costs an RPC round trip, and the public
+ * Base Sepolia endpoint rate-limits. Without this, moving between Overview and
+ * Opportunities re-reads the wallet each time and React's dev mode doubles it.
+ *
+ * WHAT IS NEVER CACHED: evaluate and execute. A verdict must be computed
+ * against the balance as it is now — serving a stale balance to a policy
+ * decision would let a spend be judged against money that is already gone.
+ * That is the one thing caching must not touch, so those two calls bypass
+ * this entirely.
+ */
+const CACHE_TTL_MS = 8_000;
+const cache = new Map<string, { at: number; value: Promise<unknown> }>();
+
+/**
+ * Wraps a read-only call with a brief cache and request de-duplication.
+ *
+ * Concurrent callers share one in-flight promise, so the four components that
+ * want the wallet on first paint produce one request rather than four.
+ *
+ * @param key - Cache key.
+ * @param fetcher - The call to make on a miss.
+ * @returns The shared or fresh result.
+ */
+function cached<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) {
+    return hit.value as Promise<T>;
+  }
+  const value = fetcher().catch((e: unknown) => {
+    // A failure must not be cached, or one blip poisons the next 8 seconds.
+    cache.delete(key);
+    throw e;
+  });
+  cache.set(key, { at: Date.now(), value });
+  return value;
+}
+
+/** Drops cached reads, so the next call goes to the server. */
+export function invalidateReads(): void {
+  cache.clear();
+}
+
 export const api = {
-  health: () => call<Health>("/api/health"),
-  wallet: () => call<WalletInfo>("/api/wallet"),
-  opportunities: () => call<{ opportunities: Opportunity[] }>("/api/opportunities"),
-  policy: () => call<{ policy: Policy; isDefault: boolean }>("/api/policy"),
-  savePolicy: (policy: Policy) =>
-    call<{ policy: Policy }>("/api/policy", {
+  health: () => cached("health", () => call<Health>("/api/health")),
+  wallet: () => cached("wallet", () => call<WalletInfo>("/api/wallet")),
+  opportunities: () =>
+    cached("opportunities", () =>
+      call<{ opportunities: Opportunity[] }>("/api/opportunities"),
+    ),
+  policy: () =>
+    cached("policy", () =>
+      call<{ policy: Policy; isDefault: boolean }>("/api/policy"),
+    ),
+  savePolicy: (policy: Policy) => {
+    invalidateReads();
+    return call<{ policy: Policy }>("/api/policy", {
       method: "PUT",
       body: JSON.stringify(policy),
-    }),
+    });
+  },
   assess: (opportunityId: string) =>
     call<{ opportunity: Opportunity; assessment: Assessment; advisory: true }>(
       "/api/assess",
@@ -187,14 +256,22 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ opportunityId, amount }),
     }),
-  execute: (opportunityId: string, amount: string) =>
-    call<ExecuteResult>("/api/execute", {
+  execute: async (opportunityId: string, amount: string) => {
+    const result = await call<ExecuteResult>("/api/execute", {
       method: "POST",
       body: JSON.stringify({ opportunityId, amount }),
-    }),
+    });
+    // The balance and the audit trail both changed. Serving the pre-execution
+    // figures afterwards would be showing the user a wallet that no longer
+    // exists.
+    invalidateReads();
+    return result;
+  },
   audit: (limit?: number) =>
-    call<{ events: AuditEvent[] }>(
-      `/api/audit${limit ? `?limit=${limit}` : ""}`,
+    cached(`audit:${limit ?? "all"}`, () =>
+      call<{ events: AuditEvent[] }>(
+        `/api/audit${limit ? `?limit=${limit}` : ""}`,
+      ),
     ),
 };
 
@@ -257,6 +334,7 @@ export function useAsync<T>(
 
   // Reload is an event handler, so it may set state directly.
   const reload = useCallback(() => {
+    invalidateReads();
     setLoading(true);
     setError(null);
     setNonce((n) => n + 1);

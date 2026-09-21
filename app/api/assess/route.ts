@@ -15,6 +15,16 @@ import { fail, ok, serverError } from "../../../lib/api/respond";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * Seconds this route may run before the host terminates it.
+ *
+ * SERV reasoning is the slowest call in the product — a structured
+ * assessment at medium reasoning effort routinely takes tens of seconds.
+ * Without this the platform default applies, and on a project without fluid
+ * compute that default is short enough to cut the call off mid-flight.
+ */
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   try {
     const raw = await request.json().catch(() => null);

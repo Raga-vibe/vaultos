@@ -40,9 +40,21 @@ export function getServClient(): OpenAI {
   cached = new OpenAI({
     apiKey: requireEnv("SERV_API_KEY"),
     baseURL: optionalEnv("SERV_BASE_URL", SERV_BASE_URL),
-    // A hung inference call must not hold a request open indefinitely.
-    timeout: 120_000,
-    maxRetries: 1,
+    /*
+      These two numbers have to fit inside the serverless function's budget,
+      and the old pair did not: 120s with one retry is up to 240s of wall
+      time. A host that kills the function first does not produce an error we
+      can report — it drops the socket, and the browser says "Failed to fetch",
+      which tells the user nothing and blames the wrong component.
+
+      45s leaves room under the 60s maxDuration on /api/assess for the balance
+      read that precedes this call and for the response to be written. Retries
+      are off because a retry on a slow reasoning call does not fix slowness,
+      it doubles it — and SERV failing is a survivable outcome here: the
+      assessment is advisory, and the policy verdict does not depend on it.
+    */
+    timeout: 45_000,
+    maxRetries: 0,
   });
 
   return cached;
