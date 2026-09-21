@@ -1,16 +1,23 @@
 import type { NextConfig } from "next";
 
 /**
- * NODE VERSION IS LOAD-BEARING — see package.json engines: "22.x".
+ * NODE VERSION IS LOAD-BEARING — see package.json engines: "24.x".
  *
  * @coinbase/cdp-sdk ships a CommonJS build that calls require("jose"), and
  * jose 6 is ESM-only ("type": "module", no CJS entry). Requiring an ES module
- * from CommonJS only works on Node 22.12 and above; on Node 20 it throws
+ * from CommonJS was added in Node 20.19 and 22.12; below those it throws
  * ERR_REQUIRE_ESM and every route touching a wallet dies at import.
  *
- * It therefore works on any modern developer machine and fails on a host that
- * defaults to Node 20 — which is precisely what happened. Do not loosen the
- * engines range to include 20.
+ * It therefore works on any modern developer machine and fails on a host
+ * serving an older Node — which is precisely what happened. Do not loosen the
+ * engines range downwards.
+ *
+ * Vercel resolves the runtime from this `engines` field, which OVERRIDES the
+ * Node.js Version chosen in the project dashboard — not the other way round.
+ * 24.x is chosen over 22.x because it is Vercel's current default, is well
+ * clear of the require(esm) threshold, and Node 20 is deprecated there from
+ * 1 October 2026. /api/health reports the version actually served, so this
+ * never has to be guessed again.
  *
  * serverExternalPackages is required.
  *

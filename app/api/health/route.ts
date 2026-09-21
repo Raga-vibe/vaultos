@@ -12,6 +12,7 @@ import { getWalletSnapshot } from "../../../lib/agentkit/wallet";
 import { findPublicCredentialLeaks } from "../../../lib/server-guard";
 import { BASE_SEPOLIA_CHAIN_ID } from "../../../lib/policy/types";
 import { getStore } from "../../../lib/store";
+import { runtimeInfo } from "../../../lib/runtime-info";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,6 +38,9 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
+      // Reported on the success path too, so a working deployment records
+      // which Node version it was working on.
+      runtime: runtimeInfo(),
       wallet: snapshot,
       expectedChainId: BASE_SEPOLIA_CHAIN_ID,
       onExpectedChain,
@@ -47,8 +51,11 @@ export async function GET() {
       ),
     });
   } catch (error) {
+    // The runtime goes out on the failure path above all, because a failure
+    // here is usually a failure to load a module, and the Node version is the
+    // first thing anyone diagnosing that needs to know.
     return NextResponse.json(
-      { ok: false, error: String(error) },
+      { ok: false, runtime: runtimeInfo(), error: String(error) },
       { status: 500 },
     );
   }

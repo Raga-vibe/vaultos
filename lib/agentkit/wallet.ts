@@ -31,6 +31,7 @@
 import type { CdpEvmWalletProvider } from "@coinbase/agentkit";
 import type { CdpClient } from "@coinbase/cdp-sdk";
 import { assertServer, optionalEnv, requireEnv } from "../server-guard";
+import { nodeSupportsRequireEsm, REQUIRE_ESM_MINIMUMS } from "../runtime-info";
 import { installAnalyticsCrashGuard } from "./analytics-guard";
 
 assertServer("lib/agentkit/wallet.ts");
@@ -86,11 +87,23 @@ async function loadCoinbaseSdks(): Promise<{
       CdpClient: cdpSdk.CdpClient,
     };
   } catch (error) {
+    // The single most common cause is an outdated Node on the host: the CDP
+    // SDK's CommonJS build requires jose, which is ESM-only. Saying so here
+    // turns a bare ERR_REQUIRE_ESM into an instruction.
+    const version = process.version;
+    const cause = nodeSupportsRequireEsm()
+      ? `This Node (${version}) can require an ES module, so the likely cause ` +
+        `is a missing file: these packages are declared in ` +
+        `serverExternalPackages, so they are not bundled and must be traced ` +
+        `into the deployment as real modules.`
+      : `This host is running Node ${version}, which cannot require() an ES ` +
+        `module. @coinbase/cdp-sdk's CommonJS build requires jose, which is ` +
+        `ESM-only, so it cannot load at all here. Node ${REQUIRE_ESM_MINIMUMS} ` +
+        `is required.`;
+
     throw new Error(
-      `Could not load the Coinbase SDKs at runtime. This usually means the ` +
-        `deployment did not include every file they need — they are declared ` +
-        `in serverExternalPackages, so they are not bundled and must be ` +
-        `traced in as real modules. Underlying error: ${String(error)}`,
+      `Could not load the Coinbase SDKs at runtime. ${cause} ` +
+        `Underlying error: ${String(error)}`,
     );
   }
 }
