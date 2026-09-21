@@ -24,7 +24,7 @@ const LAYERS = [
   [
     "SERV",
     "Suggestion",
-    "Says how risky a move looks and how much it would put in. It cannot reach your rules and cannot approve anything. If its answer is unreadable, it is thrown away rather than guessed at.",
+    "Says how risky a move looks and how much it would put in. It reasons freely because it cannot reach your rules or approve anything — which is what makes it safe to give a reasoning model a real wallet. If its answer is unreadable, it is thrown away rather than guessed at.",
   ],
   [
     "Policy engine",

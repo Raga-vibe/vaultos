@@ -234,7 +234,7 @@ export function ServVsPolicy({
               </div>
             ) : !assessment ? (
               <p className="text-sm leading-relaxed text-mute-2">
-                Nothing asked yet. Whatever SERV says changes nothing on its own.
+                Nothing asked yet. SERV can say anything here — it is the one place in the system where that is safe.
               </p>
             ) : (
               <div className="space-y-4">
@@ -293,7 +293,7 @@ export function ServVsPolicy({
           </div>
 
           <p className="border-t border-ink-800 px-4 py-2.5 text-[11px] text-mute-2">
-SERV suggests. It cannot approve anything.
+SERV reasons freely here, because it cannot approve anything.
           </p>
         </Card>
 

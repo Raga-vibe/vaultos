@@ -39,7 +39,7 @@ const LAYERS = [
     name: "SERV Reasoning",
     role: "Suggestion",
     authoritative: false,
-    body: "The AI. Looks at a move and says what it thinks — how risky, how much. It cannot reach your wallet and cannot approve anything.",
+    body: "The AI. Judges how risky a move is and how much to put in. It reasons freely precisely because it cannot reach the wallet or approve anything.",
   },
   {
     name: "Your rules",

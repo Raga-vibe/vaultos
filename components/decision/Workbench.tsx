@@ -246,8 +246,9 @@ export function Workbench({
         </div>
 
         <p className="mt-3 text-[11px] leading-relaxed text-mute-2">
-SERV is optional — skip it and the answer is the same. Only the rules
-          check can approve, and sending stays locked until it does.
+SERV&rsquo;s opinion never becomes permission — that separation is what
+          makes it safe to point a reasoning model at a live wallet. Only the
+          rules check can approve, and sending stays locked until it does.
         </p>
 
         {/* A missing destination is a deployment setting, not a refusal and
