@@ -35,7 +35,8 @@ export async function POST(request: Request) {
     const opportunity = getOpportunity(opportunityId);
     if (!opportunity) return fail(`Unknown opportunity "${opportunityId}".`, 404);
 
-    const balance = await getTokenBalanceAtomic(opportunity.tokenAddress);
+    // Advisory input to an advisory model. Never an authorization.
+    const balance = await getTokenBalanceAtomic(opportunity.tokenAddress, 15_000);
     await append("ASSESSMENT_REQUESTED", opportunity.id, { walletBalanceAtomic: balance });
 
     const result = await assessOpportunity(opportunity, balance);

@@ -59,28 +59,112 @@ export type ConfirmResult =
   | { ok: false; hash: Hex; reason: string };
 
 /**
+ * A short-lived, per-token balance cache.
+ *
+ * WHY THIS EXISTS
+ *
+ * The public Base Sepolia RPC answers a single call in one to six seconds.
+ * The opportunities grid evaluates six actions on load, and each evaluation
+ * read the balance independently, so the page took roughly half a minute to
+ * fill. Measured on the deployed site: ~7s per API call, warm or cold.
+ *
+ * WHY IT IS SAFE
+ *
+ * The default is zero. A caller gets a fresh chain read unless it explicitly
+ * asks for a stale one, so the only paths that can use a cached figure are
+ * the ones that opt in — the display and preview reads. The execution path
+ * passes nothing and therefore always re-reads the chain before a transfer is
+ * authorised, which is the property the whole product rests on: a cap is
+ * computed against the real balance at the moment money would move.
+ *
+ * In-flight reads are shared regardless of the requested age. A read that
+ * started moments ago is by definition fresh, so joining it is never staler
+ * than issuing a second one.
+ */
+type BalanceEntry = {
+  at: number;
+  value: bigint;
+  inFlight: Promise<bigint> | null;
+};
+
+const BALANCE_CACHE_KEY = Symbol.for("agentvault.balance.cache");
+
+/**
+ * The process-wide balance cache.
+ *
+ * @returns The map, created on first use.
+ */
+function balanceCache(): Map<string, BalanceEntry> {
+  const g = globalThis as unknown as Record<
+    symbol,
+    Map<string, BalanceEntry> | undefined
+  >;
+  if (!g[BALANCE_CACHE_KEY]) g[BALANCE_CACHE_KEY] = new Map();
+  return g[BALANCE_CACHE_KEY];
+}
+
+/**
  * Reads a wallet's ERC20 balance in atomic units.
  *
- * Goes to the chain, not to a cached or model-supplied figure. This is the
- * balance the policy engine's allocation cap is computed against.
+ * Goes to the chain, never to a model-supplied figure. This is the balance
+ * the policy engine's allocation cap is computed against.
  *
  * @param tokenAddress - The ERC20 contract. Defaults to Base Sepolia USDC.
+ * @param maxAgeMs - How stale a previously read figure may be. Defaults to 0,
+ *   meaning always re-read. Only display and preview callers pass anything
+ *   else; execution never does.
  * @returns The balance in atomic units.
  */
 export async function getTokenBalanceAtomic(
   tokenAddress: Address = BASE_SEPOLIA_USDC,
+  maxAgeMs = 0,
 ): Promise<bigint> {
-  const provider = await getWalletProvider();
-  const owner = provider.getAddress() as Address;
+  const cache = balanceCache();
+  const key = tokenAddress.toLowerCase();
+  const entry = cache.get(key);
 
-  const balance = await provider.readContract({
-    address: tokenAddress,
-    abi: erc20Abi,
-    functionName: "balanceOf",
-    args: [owner],
+  // Someone is already asking the chain. Their answer is as fresh as ours.
+  if (entry?.inFlight) return entry.inFlight;
+
+  if (maxAgeMs > 0 && entry && Date.now() - entry.at <= maxAgeMs) {
+    return entry.value;
+  }
+
+  const read = (async () => {
+    const provider = await getWalletProvider();
+    const owner = provider.getAddress() as Address;
+
+    const balance = (await provider.readContract({
+      address: tokenAddress,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [owner],
+    })) as bigint;
+
+    return balance;
+  })();
+
+  cache.set(key, {
+    at: entry?.at ?? 0,
+    value: entry?.value ?? 0n,
+    inFlight: read,
   });
 
-  return balance as bigint;
+  try {
+    const value = await read;
+    cache.set(key, { at: Date.now(), value, inFlight: null });
+    return value;
+  } catch (error) {
+    // A failed read must not leave a poisoned promise behind, and must not
+    // leave a stale figure looking current.
+    cache.delete(key);
+    throw error;
+  }
+}
+
+/** Clears the balance cache. For tests and spikes. */
+export function resetBalanceCache(): void {
+  balanceCache().clear();
 }
 
 /**

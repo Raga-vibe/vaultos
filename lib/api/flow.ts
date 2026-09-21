@@ -97,6 +97,16 @@ export async function decide(
   amount: string | undefined,
   amountAtomic: string | undefined,
   now: Date,
+  /**
+   * How stale the balance behind this decision may be, in milliseconds.
+   *
+   * Zero — the default — means read the chain. Only the preview path passes
+   * anything else, and it does so because a verdict printed on a card is a
+   * preview, not an authorization. The execution route never passes this, so
+   * the decision that actually moves money is always computed against a
+   * balance read at that moment.
+   */
+  balanceMaxAgeMs = 0,
 ): Promise<DecisionResult | FlowFailure> {
   // 1. Our record. Not the caller's claim about it.
   const opportunity = getOpportunity(opportunityId);
@@ -115,10 +125,14 @@ export async function decide(
     return { ok: false, reason: String(error instanceof Error ? error.message : error), status: 400 };
   }
 
-  // 2. The chain. Not a cached figure and not a caller-supplied one.
+  // 2. The chain. Never a caller-supplied figure, and never a cached one
+  //    unless the caller is a preview that explicitly asked for it.
   let balance: bigint;
   try {
-    balance = await getTokenBalanceAtomic(opportunity.tokenAddress);
+    balance = await getTokenBalanceAtomic(
+      opportunity.tokenAddress,
+      balanceMaxAgeMs,
+    );
   } catch (error) {
     return {
       ok: false,

@@ -11,7 +11,9 @@ export async function GET() {
   try {
     const [snapshot, usdc] = await Promise.all([
       getWalletSnapshot(),
-      getTokenBalanceAtomic(BASE_SEPOLIA_USDC),
+      // Display only. A balance a few seconds old on a card is fine; the
+      // execution path never reads through this cache.
+      getTokenBalanceAtomic(BASE_SEPOLIA_USDC, 15_000),
     ]);
     return ok({
       wallet: snapshot,

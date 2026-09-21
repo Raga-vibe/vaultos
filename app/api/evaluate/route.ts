@@ -12,6 +12,9 @@ import { fail, ok, serverError } from "../../../lib/api/respond";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/** How stale a previewed balance may be. Execution never uses this. */
+const PREVIEW_BALANCE_MAX_AGE_MS = 15_000;
+
 export async function POST(request: Request) {
   try {
     const raw = await request.json().catch(() => null);
@@ -29,6 +32,11 @@ export async function POST(request: Request) {
       body.amount,
       body.amountAtomic,
       new Date(),
+      // A verdict printed on a card is a preview, not an authorization, so a
+      // balance a few seconds old is acceptable here and saves the grid six
+      // separate one-to-six-second RPC reads on load. /api/execute passes
+      // nothing and always re-reads.
+      PREVIEW_BALANCE_MAX_AGE_MS,
     );
     if (isFailure(result)) return fail(result.reason, result.status);
 

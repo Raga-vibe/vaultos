@@ -8,15 +8,18 @@
  */
 
 import { AuditTrail } from "../../../components/audit/AuditTrail";
+import { EphemeralNotice } from "../../../components/system/SystemStatus";
 import { Button, Reveal, SectionHeader } from "../../../components/ui/primitives";
 import { api, useAsync } from "../../../lib/ui/api";
 
 export default function Activity() {
   const audit = useAsync(() => api.audit(), []);
+  const health = useAsync(() => api.health(), []);
 
   return (
     <div className="space-y-4">
       <Reveal>
+        <EphemeralNotice what="the audit trail" state={health} />
         <SectionHeader
           as="h1"
           title="Audit trail"

@@ -11,6 +11,43 @@
 import { Card, Mono, Skeleton, StatusDot } from "../ui/primitives";
 import type { Async, Health } from "../../lib/ui/api";
 
+/**
+ * Says plainly when nothing on this deployment is being kept.
+ *
+ * The store falls back to memory when Supabase is not configured, which means
+ * a saved policy and every audit record vanish on the next cold start. That is
+ * a reasonable default for local work and a trap for anyone evaluating the
+ * deployed site: they change a rule, come back, and find it reverted with no
+ * explanation. The status was already reported by /api/health — this puts it
+ * where the consequence actually lands.
+ */
+export function EphemeralNotice({
+  what,
+  state,
+}: {
+  /** What will not survive, in the reader's terms. */
+  what: string;
+  state: Async<Health>;
+}) {
+  if (state.data?.store !== "memory") return null;
+
+  return (
+    <div className="mb-4 flex flex-wrap items-start gap-2.5 rounded-lg border border-warn-500/25 bg-warn-950/20 px-4 py-3">
+      <span className="font-mono text-xs text-warn-400" aria-hidden="true">
+        !
+      </span>
+      <p className="flex-1 text-[12px] leading-relaxed text-ink-200">
+        <span className="font-medium text-warn-400">Not being saved. </span>
+        This deployment is running without a database, so {what} is kept in
+        memory and resets whenever the server restarts. Set{" "}
+        <span className="font-mono text-ink-100">SUPABASE_URL</span> and{" "}
+        <span className="font-mono text-ink-100">SUPABASE_SERVICE_ROLE_KEY</span>{" "}
+        to persist it.
+      </p>
+    </div>
+  );
+}
+
 export function SystemStatus({ state }: { state: Async<Health> }) {
   const { data, error, loading } = state;
 

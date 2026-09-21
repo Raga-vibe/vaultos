@@ -9,15 +9,18 @@
  */
 
 import { PolicyPanel } from "../../../components/policy/PolicyPanel";
+import { EphemeralNotice } from "../../../components/system/SystemStatus";
 import { Card, Reveal } from "../../../components/ui/primitives";
 import { api, useAsync } from "../../../lib/ui/api";
 
 export default function PolicyPage() {
   const policy = useAsync(() => api.policy(), []);
+  const health = useAsync(() => api.health(), []);
 
   return (
     <div className="space-y-6">
       <Reveal>
+        <EphemeralNotice what="your policy" state={health} />
         <PolicyPanel
           headingLevel="h1"
           policy={policy.data?.policy ?? null}

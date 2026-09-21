@@ -71,6 +71,12 @@ export function Workbench({
   // on top of the one the page already made.
   const policy = useAsync(() => api.policy(), []);
 
+  // Whether this deployment has a destination for transfers at all. Without
+  // OPPORTUNITY_DEPOSIT_ADDRESS the server refuses to guess one, so Execute
+  // would fail on click — better to say so before the click than after.
+  const health = useAsync(() => api.health(), []);
+  const canReachChain = health.data?.depositAddressConfigured !== false;
+
   const [amount, setAmount] = useState("0.01");
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [assessmentError, setAssessmentError] = useState<string | null>(null);
@@ -166,6 +172,7 @@ export function Workbench({
   const canExecute =
     evaluation?.verdict.decision === "APPROVED" &&
     !evaluation.verdict.requiresManualApproval &&
+    canReachChain &&
     !executing &&
     !execution?.transaction;
 
@@ -243,6 +250,20 @@ export function Workbench({
           change. Only the policy check can authorise, and Execute stays locked
           until it has.
         </p>
+
+        {/* A missing destination is a deployment setting, not a refusal and
+            not a fault. Named as such, with the variable to set. */}
+        {!canReachChain ? (
+          <p className="mt-2 rounded border border-ink-600 bg-ink-850/70 px-3 py-2 text-[11px] leading-relaxed text-mute-1">
+            <span aria-hidden="true">· </span>
+            Execution is not configured on this deployment —{" "}
+            <span className="font-mono text-ink-200">
+              OPPORTUNITY_DEPOSIT_ADDRESS
+            </span>{" "}
+            is unset, and the server refuses to invent a destination for a
+            transfer. Assessment and policy verification work normally.
+          </p>
+        ) : null}
 
         {evaluation?.verdict.requiresManualApproval ? (
           <p className="mt-2 rounded border border-warn-500/30 bg-warn-950/25 px-3 py-2 text-[11px] leading-relaxed text-warn-400">
