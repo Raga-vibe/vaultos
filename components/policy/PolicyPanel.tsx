@@ -77,6 +77,25 @@ function Rule({
   );
 }
 
+/**
+ * A heading that divides the rule set into four groups.
+ *
+ * Twelve rules in one undifferentiated column is a wall, and a wall is
+ * something people scroll past rather than read. The groups answer four
+ * different questions — how much, how it behaves, how much in total, and
+ * where — so a reader looking for one of them can stop looking at the rest.
+ */
+function GroupHeading({ title, blurb }: { title: string; blurb: string }) {
+  return (
+    <div className="border-b border-ink-800 bg-ink-850/50 px-4 py-2.5">
+      <h3 className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-200">
+        {title}
+      </h3>
+      <p className="mt-0.5 text-[11px] leading-snug text-mute-1">{blurb}</p>
+    </div>
+  );
+}
+
 /** A labelled control in the editor. */
 function Control({
   label,
@@ -401,8 +420,8 @@ export function PolicyPanel({
   return (
     <div className="space-y-3">
       <SectionHeader
-        title="Policy"
-        subtitle="The boundaries you set. Checked on every single move, by code that cannot be argued with."
+        title="Your policy rules"
+        subtitle="The boundaries you set. Checked on every single move, by code that has never read a word the AI wrote and cannot be argued with."
         trailing={
           editable && !compact ? (
             <div className="flex items-center gap-2">
@@ -468,6 +487,10 @@ export function PolicyPanel({
       <Card>
         {!editing || !draft ? (
           <>
+            <GroupHeading
+              title="Core limits"
+              blurb="The three questions asked on every single move."
+            />
             <Rule
               field="maxAllocationPercent"
               value={`${p.maxAllocationPercent}%`}
@@ -478,6 +501,10 @@ export function PolicyPanel({
               tone={p.maxRisk === "HIGH" ? "warn" : "neutral"}
             />
             <Rule field="minLiquidity" value={p.minLiquidity} />
+            <GroupHeading
+              title="Behaviour"
+              blurb="What the agent may do without you, and what it may never do."
+            />
             <Rule
               field="leverageAllowed"
               value={p.leverageAllowed ? "ALLOWED" : "NEVER"}
@@ -490,6 +517,10 @@ export function PolicyPanel({
             />
             {compact ? null : (
               <>
+            <GroupHeading
+              title="Exposure controls"
+              blurb="Ceilings across everything, and over time — not just per move."
+            />
             <Rule
               field="maxTotalExposurePercent"
               value={
@@ -529,6 +560,10 @@ export function PolicyPanel({
                   ? "NOT SET"
                   : formatSeconds(p.cooldownSeconds)
               }
+            />
+            <GroupHeading
+              title="Protocol controls"
+              blurb="Where the money is allowed to go, and where it never may."
             />
             <Rule
               field="allowedProtocols"
@@ -573,6 +608,10 @@ export function PolicyPanel({
           </>
         ) : (
           <>
+            <GroupHeading
+              title="Core limits"
+              blurb="The three questions asked on every single move."
+            />
             <Control
               label="Biggest single move"
               hint="How much of your money can go into one thing at once."
@@ -602,6 +641,10 @@ export function PolicyPanel({
               />
             </Control>
 
+            <GroupHeading
+              title="Behaviour"
+              blurb="What the agent may do without you, and what it may never do."
+            />
             <Control
               label="Borrowing to invest"
               hint="Borrowing multiplies losses as well as gains."
@@ -628,6 +671,10 @@ export function PolicyPanel({
               />
             </Control>
 
+            <GroupHeading
+              title="Exposure controls"
+              blurb="Ceilings across everything, and over time — not just per move."
+            />
             <Control
               label="Most invested at once"
               hint="Across everything, not per move."
@@ -703,6 +750,10 @@ export function PolicyPanel({
               />
             </Control>
 
+            <GroupHeading
+              title="Protocol controls"
+              blurb="Where the money is allowed to go, and where it never may."
+            />
             <Control
               label="Approved places only"
               hint="Comma separated. An empty list allows nothing at all."

@@ -16,23 +16,74 @@ import { Card, CopyButton, ErrorNote, Mono, Pill, Skeleton, type Tone } from "..
 import { formatTime } from "../../lib/ui/format";
 import type { AuditEvent } from "../../lib/ui/api";
 
-/** Tone and label for each event type. */
-const EVENT_META: Record<string, { tone: Tone; label: string }> = {
-  POLICY_UPDATED: { tone: "info", label: "You changed a rule" },
-  ASSESSMENT_REQUESTED: { tone: "neutral", label: "Asked the AI" },
-  ASSESSMENT_RECEIVED: { tone: "neutral", label: "AI answered" },
-  ASSESSMENT_REJECTED: { tone: "warn", label: "AI answer thrown out" },
-  POLICY_EVALUATED: { tone: "info", label: "Rules checked" },
-  EXECUTION_SUBMITTED: { tone: "warn", label: "Money sent" },
-  EXECUTION_CONFIRMED: { tone: "approve", label: "Confirmed on chain" },
-  EXECUTION_FAILED: { tone: "reject", label: "Move failed" },
-  OPPORTUNITY_SOURCED: { tone: "neutral", label: "Opportunity found" },
+/**
+ * Tone, audit verb and plain gloss for each event type.
+ *
+ * The verb is the one an audit trail should use — ASSESSED, ALLOWED, REFUSED,
+ * EXECUTED, CONFIRMED — because that is the vocabulary someone reconstructing
+ * what happened will scan for. The gloss underneath is for everyone else.
+ *
+ * EXECUTION_FAILED is amber, not red. Red in this product means a policy
+ * refusal; a transaction that did not land is a system fault, and giving the
+ * two the same colour would blur the only distinction this log exists to keep.
+ */
+const EVENT_META: Record<
+  string,
+  { tone: Tone; label: string; gloss: string }
+> = {
+  POLICY_UPDATED: {
+    tone: "info",
+    label: "Policy updated",
+    gloss: "You changed a rule",
+  },
+  ASSESSMENT_REQUESTED: {
+    tone: "neutral",
+    label: "Assessment requested",
+    gloss: "SERV was asked for an opinion",
+  },
+  ASSESSMENT_RECEIVED: {
+    tone: "neutral",
+    label: "Assessed",
+    gloss: "SERV answered — advisory only",
+  },
+  ASSESSMENT_REJECTED: {
+    tone: "warn",
+    label: "Assessment discarded",
+    gloss: "SERV's answer did not parse and was thrown away",
+  },
+  POLICY_EVALUATED: {
+    tone: "info",
+    label: "Policy verified",
+    gloss: "Every rule checked against this request",
+  },
+  EXECUTION_SUBMITTED: {
+    tone: "warn",
+    label: "Executed",
+    gloss: "Transaction submitted to the chain",
+  },
+  EXECUTION_CONFIRMED: {
+    tone: "approve",
+    label: "Transaction confirmed",
+    gloss: "Included in a block on Base Sepolia",
+  },
+  EXECUTION_FAILED: {
+    tone: "warn",
+    label: "Execution failed",
+    gloss: "System fault — not a policy decision",
+  },
+  OPPORTUNITY_SOURCED: {
+    tone: "neutral",
+    label: "Opportunity sourced",
+    gloss: "A candidate was read from the seeded set",
+  },
 };
 
 function Row({ event }: { event: AuditEvent }) {
   const reduce = useReducedMotion();
   const [open, setOpen] = useState(false);
-  const meta = EVENT_META[event.type] ?? { tone: "neutral" as Tone, label: event.type };
+  const meta =
+    EVENT_META[event.type] ??
+    { tone: "neutral" as Tone, label: event.type, gloss: "" };
   const hash = typeof event.detail.hash === "string" ? event.detail.hash : null;
 
   return (
@@ -55,7 +106,7 @@ function Row({ event }: { event: AuditEvent }) {
               <Pill
                 tone={event.verdict.decision === "APPROVED" ? "approve" : "reject"}
               >
-                {event.verdict.decision}
+                {event.verdict.decision === "APPROVED" ? "Allowed" : "Refused"}
               </Pill>
             ) : null}
 
@@ -65,6 +116,12 @@ function Row({ event }: { event: AuditEvent }) {
               </Mono>
             ) : null}
           </div>
+
+          {meta.gloss ? (
+            <p className="mt-1 text-[11px] leading-snug text-mute-1">
+              {meta.gloss}
+            </p>
+          ) : null}
 
           {event.verdict && event.verdict.violations.length > 0 ? (
             <p className="mt-1.5 font-mono text-[11px] text-reject-400">

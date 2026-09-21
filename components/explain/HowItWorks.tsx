@@ -25,14 +25,14 @@ const STEPS = [
   },
   {
     n: "2",
-    label: "The AI gives an opinion",
-    body: "It reads an opportunity and explains what it thinks — the risks, a suggested amount, what worries it. That is all it does.",
+    label: "SERV gives an opinion",
+    body: "The AI reads an opportunity and says what it thinks — the risks, a suggested amount, what worries it. Advisory. That is all it does.",
     tone: "neutral" as const,
   },
   {
     n: "3",
     label: "Your rules decide",
-    body: "Separate code checks the request against your boundaries. It never reads the AI's opinion. If a rule says no, nothing moves.",
+    body: "Separate code checks the request against your boundaries. It never reads SERV's opinion. If a rule says no, nothing moves — and that refusal is the system working.",
     tone: "info" as const,
   },
 ];

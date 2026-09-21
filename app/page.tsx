@@ -1,11 +1,17 @@
 "use client";
 
 /**
- * Overview.
+ * Overview — the command center.
  *
- * The first screen answers, in order: whose wallet, what it may do, and what
- * it has done. A judge should be able to read the argument off this page
- * without scrolling past a marketing hero to find the product.
+ * Not a landing page with the product underneath it. The first viewport has
+ * to answer four questions at once: what is this, whose wallet is it, what is
+ * it allowed to do, and what do I press. Everything below that is depth for
+ * the person who wants it, not the price of entry for the person who doesn't.
+ *
+ * There is one primary action, and it is "Review an opportunity" — the single
+ * path that demonstrates the claim the headline makes. "Configure policy" is
+ * secondary and looks secondary, because changing the boundaries before you
+ * have watched one enforced is the wrong order to meet this product in.
  */
 
 import Link from "next/link";
@@ -29,67 +35,76 @@ export default function Overview() {
 
   return (
     <div className="space-y-10">
-      {/* ── Masthead ─────────────────────────────────────────────── */}
+      {/* ── Command center ───────────────────────────────────────── */}
       <Reveal>
-        <header className="max-w-3xl">
-          <div className="flex items-center gap-3">
-            <BrandMark size={34} />
-            <h1 className="text-3xl font-semibold tracking-tight text-ink-50 sm:text-4xl">
-              Vault<span className="text-approve-400">OS</span>
-            </h1>
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
+          {/* Identity, claim, actions */}
+          <header>
+            <div className="flex items-center gap-3">
+              <BrandMark size={34} />
+              <h1 className="text-3xl font-semibold tracking-tight text-ink-50 sm:text-4xl">
+                Vault<span className="text-approve-400">OS</span>
+              </h1>
+            </div>
+            <p className="mt-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-approve-400">
+              Autonomous finance, with boundaries
+            </p>
+
+            {/*
+              The claim, stated without overselling what the software does.
+              An earlier draft said the agent "invests on its own", which
+              promised an autonomy this product deliberately does not grant:
+              autoExecute is off by default, and the point of the whole design
+              is that the AI proposes and never disposes.
+            */}
+            <p className="mt-5 text-base leading-relaxed text-ink-200 sm:text-lg">
+              The control layer for autonomous wallets. An AI proposes moves.
+              Your rules decide whether any of them happen.
+            </p>
+
+            <p className="mt-3 text-sm leading-relaxed text-mute-1">
+              The AI advises. It never authorises. A separate piece of code
+              checks every move against the boundaries you set, and that code
+              has never read a word the AI wrote. If a rule says no, nothing
+              moves — however confident the AI was.
+            </p>
+
+            <div className="mt-6 flex flex-wrap items-center gap-2.5">
+              <Link
+                href="/opportunities"
+                className="inline-flex items-center gap-2 rounded border border-approve-500/50 bg-approve-950/50 px-4 py-2.5 text-sm font-medium text-approve-400 transition-colors hover:border-approve-500 hover:bg-approve-950/80"
+              >
+                Review an opportunity
+                <span aria-hidden="true">→</span>
+              </Link>
+              <Link
+                href="/policy"
+                className="inline-flex items-center gap-2 rounded border border-ink-600 px-4 py-2.5 text-sm text-ink-200 transition-colors hover:border-ink-400 hover:bg-ink-850"
+              >
+                Configure policy
+              </Link>
+            </div>
+            <p className="mt-2.5 text-[12px] leading-relaxed text-mute-2">
+              Six examples, checked live against your rules. Three are refused,
+              each for a different reason — and a refusal is the system
+              working, not failing.
+            </p>
+          </header>
+
+          {/* Whose wallet, and is anything wrong with it */}
+          <div className="space-y-4">
+            <WalletCard state={wallet} />
+            <AgentStatus health={health} policy={policy.data?.policy ?? null} />
           </div>
-          <p className="mt-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-approve-400">
-            Autonomous finance, with boundaries
-          </p>
-
-          <p className="mt-5 text-base leading-relaxed text-ink-200 sm:text-lg">
-            The control layer for autonomous wallets. It invests on its own —
-            inside limits you set, and cannot be talked out of.
-          </p>
-
-          <p className="mt-3 text-sm leading-relaxed text-mute-1">
-            An AI advises. It never decides. A separate piece of code checks
-            every move against your rules, and that code has never read a word
-            the AI wrote. If a rule says no, nothing moves — no matter how
-            confident the AI was.
-          </p>
-
-          {/*
-            One call to action, and only one. A visitor with thirty seconds
-            should be pointed at the single screen that proves the claim above
-            rather than left to choose between four equal links.
-          */}
-          <Link
-            href="/opportunities"
-            className="mt-6 inline-flex items-center gap-2 rounded border border-approve-500/45 bg-approve-950/40 px-4 py-2.5 text-sm font-medium text-approve-400 transition-colors hover:border-approve-500 hover:bg-approve-950/70"
-          >
-            Watch it refuse something
-            <span aria-hidden="true">→</span>
-          </Link>
-          <p className="mt-2 text-[12px] text-mute-2">
-            Six examples, checked live against your rules. Three are refused,
-            each for a different reason.
-          </p>
-        </header>
+        </div>
       </Reveal>
 
       <Reveal delay={0.04}>
-        <HowItWorks />
-      </Reveal>
-
-      <Reveal delay={0.06}>
         <TestnetNotice />
       </Reveal>
 
-      {/* ── Wallet + status ──────────────────────────────────────── */}
-      <Reveal delay={0.05}>
-        <div className="grid items-start gap-4 lg:grid-cols-[1.7fr_1fr]">
-          <WalletCard state={wallet} />
-          <div className="space-y-4">
-            <AgentStatus health={health} policy={policy.data?.policy ?? null} />
-            <SystemStatus state={health} />
-          </div>
-        </div>
+      <Reveal delay={0.06}>
+        <HowItWorks />
       </Reveal>
 
       {/* ── The pipeline ─────────────────────────────────────────── */}
@@ -97,7 +112,7 @@ export default function Overview() {
         <section>
           <SectionHeader
             title="What happens on every move"
-            subtitle="Six steps, always in this order. None of them can be skipped."
+            subtitle="Six stages, always in this order. None of them can be skipped, and stage three is the only one that can say yes."
           />
           <Card className="overflow-x-auto p-5">
             <DecisionFlow stage="idle" />
@@ -106,7 +121,7 @@ export default function Overview() {
       </Reveal>
 
       {/* ── Policy ───────────────────────────────────────────────── */}
-      <Reveal delay={0.15}>
+      <Reveal delay={0.14}>
         <section>
           <PolicyPanel
             compact
@@ -126,7 +141,7 @@ export default function Overview() {
       </Reveal>
 
       {/* ── Recent activity ──────────────────────────────────────── */}
-      <Reveal delay={0.2}>
+      <Reveal delay={0.18}>
         <section>
           <SectionHeader
             title="Recent activity"
@@ -135,7 +150,7 @@ export default function Overview() {
                 href="/activity"
                 className="font-mono text-[11px] uppercase tracking-wider text-mute-1 hover:text-ink-100"
               >
-                Full trail →
+                Full audit trail →
               </Link>
             }
           />
@@ -146,6 +161,17 @@ export default function Overview() {
             onRetry={audit.reload}
             limit={5}
           />
+        </section>
+      </Reveal>
+
+      {/* ── System ───────────────────────────────────────────────── */}
+      <Reveal delay={0.22}>
+        <section>
+          <SectionHeader
+            title="System"
+            subtitle="What is configured and reachable right now. Reported from the server, never assumed."
+          />
+          <SystemStatus state={health} />
         </section>
       </Reveal>
     </div>

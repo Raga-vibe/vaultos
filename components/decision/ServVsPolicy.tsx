@@ -17,7 +17,15 @@
 
 import clsx from "clsx";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Card, Field, Mono, Pill, Skeleton, type Tone } from "../ui/primitives";
+import {
+  Card,
+  Field,
+  Mono,
+  Pill,
+  SafetyDecision,
+  Skeleton,
+  type Tone,
+} from "../ui/primitives";
 import { plainRefusal } from "../../lib/ui/plain";
 import type { Assessment, Verdict } from "../../lib/ui/api";
 
@@ -49,21 +57,27 @@ export function disagrees(
 
 function PanelHeading({
   title,
+  gloss,
   role,
   tone,
 }: {
   title: string;
+  /** The same thing said without jargon, for a first-time reader. */
+  gloss: string;
   role: string;
   tone: "advisory" | "authoritative";
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-800 px-4 py-3">
-      <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-200">
-        {title}
-      </h3>
+    <div className="flex flex-wrap items-start justify-between gap-2 border-b border-ink-800 px-4 py-3">
+      <div className="min-w-0">
+        <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-100">
+          {title}
+        </h3>
+        <p className="mt-0.5 text-[12px] leading-snug text-mute-1">{gloss}</p>
+      </div>
       <span
         className={clsx(
-          "rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider",
+          "shrink-0 rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider",
           tone === "authoritative"
             ? "border-approve-500/40 bg-approve-950/50 text-approve-400"
             : "border-ink-600 bg-ink-850 text-mute-1",
@@ -97,8 +111,9 @@ export function ServVsPolicy({
         {/* ── SERV ─────────────────────────────────────────────────── */}
         <Card className="flex flex-col">
           <PanelHeading
-            title="What the AI thinks"
-            role="Opinion only"
+            title="SERV assessment"
+            gloss="What the AI thinks"
+            role="Advisory"
             tone="advisory"
           />
 
@@ -183,8 +198,9 @@ The AI can suggest. It cannot approve anything.
         {/* ── Policy engine ────────────────────────────────────────── */}
         <Card className="flex flex-col">
           <PanelHeading
-            title="What your rules say"
-            role="This decides"
+            title="Policy verification"
+            gloss="What your rules say — this is the only thing that can authorise"
+            role="Authoritative"
             tone="authoritative"
           />
 
@@ -201,21 +217,51 @@ The AI can suggest. It cannot approve anything.
               </p>
             ) : (
               <div className="space-y-4">
-                <Field label="Decision">
-                  <span
-                    className={clsx(
-                      "font-mono text-2xl tracking-tight",
-                      verdict.decision === "APPROVED"
-                        ? "text-approve-400"
-                        : "text-reject-400",
-                    )}
+                {/*
+                  A refusal is not a failure state, and must never be dressed
+                  as one. It is the only moment where the product's central
+                  claim becomes observable — so it is headed as a decision the
+                  system got right, and the rules that produced it are named.
+                */}
+                {verdict.decision === "REJECTED" ? (
+                  <SafetyDecision
+                    headline={
+                      verdict.violations.length === 1
+                        ? "One of your boundaries blocked this. Nothing moved."
+                        : `${verdict.violations.length} of your boundaries blocked this. Nothing moved.`
+                    }
                   >
-                    <span aria-hidden="true">
-                      {verdict.decision === "APPROVED" ? "✓ " : "× "}
+                    <ul className="mt-3 space-y-2">
+                      {verdict.violations.map((v) => (
+                        <li
+                          key={v.code}
+                          className="rounded border border-reject-500/25 bg-reject-950/30 px-3 py-2.5"
+                        >
+                          <p className="text-[13px] leading-relaxed text-ink-200">
+                            {plainRefusal(v.code)}
+                          </p>
+                          <p className="mt-1.5 text-[11px] leading-relaxed text-mute-1">
+                            {v.message}
+                          </p>
+                          <Mono className="mt-1.5 block text-[10px] text-reject-400/90">
+                            {v.code}
+                          </Mono>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-3 text-[11px] leading-relaxed text-mute-1">
+                      To allow something like this, change the rule that
+                      refused it — not the agent.
+                    </p>
+                  </SafetyDecision>
+                ) : (
+                  <Field label="Decision">
+                    <span className="font-mono text-2xl tracking-tight text-approve-400">
+                      <span aria-hidden="true">✓ </span>
+                      APPROVED
                     </span>
-                    {verdict.decision}
-                  </span>
-                </Field>
+                  </Field>
+                )}
 
                 {verdict.decision === "APPROVED" &&
                 verdict.requiresManualApproval ? (
@@ -224,29 +270,6 @@ The AI can suggest. It cannot approve anything.
                     Allowed by your rules — but you asked to confirm each move
                     yourself, so nothing will happen until you say go.
                   </p>
-                ) : null}
-
-                {verdict.violations.length > 0 ? (
-                  <Field label="Why it was refused">
-                    <ul className="space-y-2">
-                      {verdict.violations.map((v) => (
-                        <li
-                          key={v.code}
-                          className="rounded border border-reject-500/25 bg-reject-950/25 px-3 py-2.5"
-                        >
-                          <p className="text-[13px] leading-relaxed text-ink-200">
-                            {plainRefusal(v.code)}
-                          </p>
-                          <p className="mt-1.5 text-[11px] leading-relaxed text-mute-2">
-                            {v.message}
-                          </p>
-                          <Mono className="mt-1.5 block text-[10px] text-reject-400/80">
-                            {v.code}
-                          </Mono>
-                        </li>
-                      ))}
-                    </ul>
-                  </Field>
                 ) : null}
 
                 {verdict.allocationBps !== null ? (

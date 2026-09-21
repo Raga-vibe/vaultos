@@ -24,13 +24,25 @@ export type FlowStage =
   | "confirmed"
   | "failed";
 
+/**
+ * The six stages, each carrying its technical name and a plain gloss.
+ *
+ * Both are shown, always. The technical name is what appears in the audit
+ * trail and in the source, so a judge can follow one to the other; the gloss
+ * is what makes the diagram legible to someone who has never heard the word
+ * "policy engine". Dropping either one loses an audience.
+ *
+ * `role` is only set on the two stages people confuse. SERV is advisory and
+ * says so on the diagram itself, because the entire architecture rests on
+ * that distinction and a stepper that implied the AI decides would undo it.
+ */
 const STEPS = [
-  { key: "opportunity", label: "Something to invest in" },
-  { key: "serv", label: "AI gives its opinion" },
-  { key: "policy", label: "Your rules are checked" },
-  { key: "verdict", label: "Allowed or refused" },
-  { key: "execution", label: "Money moves" },
-  { key: "audit", label: "Written down forever" },
+  { key: "opportunity", label: "Opportunity", gloss: "Something to invest in", role: null },
+  { key: "serv", label: "SERV assessment", gloss: "The AI gives an opinion", role: "Advisory" },
+  { key: "policy", label: "Policy verification", gloss: "Your rules are checked", role: "Authoritative" },
+  { key: "verdict", label: "Decision", gloss: "Allowed or refused", role: null },
+  { key: "execution", label: "Execution", gloss: "Money moves on chain", role: null },
+  { key: "audit", label: "Audit record", gloss: "Written down permanently", role: null },
 ] as const;
 
 /**
@@ -148,14 +160,39 @@ export function DecisionFlow({ stage }: { stage: FlowStage }) {
               ) : null}
             </div>
 
-            <span
-              className={clsx(
-                "pb-4 text-[11px] uppercase tracking-[0.1em] sm:pb-0 sm:text-center",
-                tone === "idle" ? "text-mute-2" : "text-ink-200",
-              )}
-            >
-              {step.label}
-            </span>
+            <div className="pb-4 sm:pb-0 sm:px-1 sm:text-center">
+              <p
+                className={clsx(
+                  "font-mono text-[10px] uppercase tracking-[0.12em]",
+                  tone === "idle" ? "text-mute-2" : "text-ink-100",
+                )}
+              >
+                {step.label}
+              </p>
+              <p
+                className={clsx(
+                  "mt-1 text-[11px] leading-snug",
+                  tone === "idle" ? "text-mute-3" : "text-mute-1",
+                )}
+              >
+                {step.gloss}
+              </p>
+              {/* The role badge sits last so that the label and the gloss stay
+                  on the same baseline across all six columns; a badge in the
+                  middle staggered four of them against two. */}
+              {step.role ? (
+                <p
+                  className={clsx(
+                    "mt-1.5 inline-block rounded border px-1.5 py-px font-mono text-[9px] uppercase tracking-wider",
+                    step.role === "Authoritative"
+                      ? "border-approve-500/40 bg-approve-950/50 text-approve-400"
+                      : "border-ink-600 bg-ink-850 text-mute-1",
+                  )}
+                >
+                  {step.role}
+                </p>
+              ) : null}
+            </div>
           </li>
         );
       })}

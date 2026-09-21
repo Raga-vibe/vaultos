@@ -18,8 +18,8 @@ export default function Activity() {
     <div className="space-y-4">
       <Reveal>
         <SectionHeader
-          title="Everything that happened"
-          subtitle="A permanent record. Every check, every decision, every rule that fired. Nothing here can be edited or deleted — not even by the agent."
+          title="Audit trail"
+          subtitle="Append-only, newest first. Every assessment, every verification, every refusal and every transaction — with the rule that produced it. Nothing here can be edited or deleted, not even by the agent."
           trailing={
             <Button onClick={audit.reload} busy={audit.loading}>
               Refresh

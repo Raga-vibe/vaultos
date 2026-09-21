@@ -26,9 +26,11 @@ import {
   Button,
   Card,
   CopyButton,
+  ErrorNote,
   Field,
   Mono,
   Pill,
+  SafetyDecision,
   SectionHeader,
 } from "../ui/primitives";
 import { DecisionFlow, type FlowStage } from "./DecisionFlow";
@@ -194,12 +196,18 @@ export function Workbench({
             </div>
           </div>
 
+          {/*
+            Three buttons in the order the pipeline runs, named for what each
+            one actually does. "Execute" on its own would have implied the
+            button decides; "Execute approved action" says out loud that the
+            approval happened elsewhere and this only carries it out.
+          */}
           <div className="ml-auto flex flex-wrap gap-2">
             <Button onClick={assess} busy={assessing}>
-              Ask the AI
+              Get SERV assessment
             </Button>
             <Button onClick={evaluate} busy={evaluating}>
-              Check my rules
+              Verify against policy
             </Button>
             <Button
               tone="approve"
@@ -207,14 +215,21 @@ export function Workbench({
               busy={executing}
               disabled={!canExecute}
             >
-              Execute
+              Execute approved action
             </Button>
           </div>
         </div>
 
+        <p className="mt-3 text-[11px] leading-relaxed text-mute-2">
+          SERV only advises — you can skip it entirely and the verdict will not
+          change. Only the policy check can authorise, and Execute stays locked
+          until it has.
+        </p>
+
         {evaluation?.verdict.requiresManualApproval ? (
-          <p className="mt-3 text-[11px] text-mute-2">
-You asked to confirm every move yourself, so Execute stays locked
+          <p className="mt-2 rounded border border-warn-500/30 bg-warn-950/25 px-3 py-2 text-[11px] leading-relaxed text-warn-400">
+            <span aria-hidden="true">! </span>
+            You asked to confirm every move yourself, so Execute stays locked
             until you turn that off in your rules. Working as intended.
           </p>
         ) : null}
@@ -224,16 +239,8 @@ You asked to confirm every move yourself, so Execute stays locked
         <DecisionFlow stage={stage} />
       </Card>
 
-      {evaluateError ? (
-        <div className="rounded-lg border border-reject-500/30 bg-reject-950/30 p-4">
-          <p className="text-sm font-medium text-reject-400">
-            <span aria-hidden="true">× </span>Evaluation failed
-          </p>
-          <p className="mt-1 break-words font-mono text-xs text-ink-300">
-            {evaluateError}
-          </p>
-        </div>
-      ) : null}
+      {/* A failed request is amber and says so. Red is reserved for refusals. */}
+      {evaluateError ? <ErrorNote message={evaluateError} onRetry={evaluate} /> : null}
 
       <ServVsPolicy
         assessment={assessment}
@@ -266,15 +273,16 @@ You asked to confirm every move yourself, so Execute stays locked
                 </div>
               ) : executeError ? (
                 <>
-                  <p className="text-sm font-medium text-reject-400">
-                    <span aria-hidden="true">× </span>Execution failed
+                  <p className="text-sm font-medium text-warn-400">
+                    <span aria-hidden="true">! </span>Execution did not complete
                   </p>
                   <p className="mt-1 break-words font-mono text-xs text-ink-300">
                     {executeError}
                   </p>
-                  <p className="mt-2 text-[11px] text-mute-2">
-                    Nothing is reported as confirmed without a transaction hash
-                    from the chain.
+                  <p className="mt-2 text-[11px] leading-relaxed text-mute-1">
+                    This is a system error, not a policy decision. Nothing is
+                    ever reported as confirmed without a transaction hash from
+                    the chain.
                   </p>
                 </>
               ) : execution?.transaction ? (
@@ -332,21 +340,22 @@ You asked to confirm every move yourself, so Execute stays locked
                   </div>
                 </>
               ) : execution ? (
-                <>
-                  <p className="text-sm text-ink-200">
-                    {execution.requiresManualApproval ? (
-                      <>
-                        <span aria-hidden="true">! </span>
-                        Policy permits this, but a human must confirm.
-                      </>
-                    ) : (
-                      <>
-                        <span aria-hidden="true">× </span>
-                        {execution.reason ?? "Nothing was executed."}
-                      </>
-                    )}
+                execution.requiresManualApproval ? (
+                  <p className="text-sm leading-relaxed text-warn-400">
+                    <span aria-hidden="true">! </span>
+                    Your policy permits this, but you require a human to
+                    confirm every move. Nothing was sent.
                   </p>
-                </>
+                ) : (
+                  /* The server refused at the execution boundary too. Same
+                     framing as any other refusal: a decision, not a fault. */
+                  <SafetyDecision
+                    headline={
+                      execution.reason ??
+                      "Your policy refused this at the execution boundary. Nothing was sent."
+                    }
+                  />
+                )
               ) : null}
             </Card>
           </motion.div>

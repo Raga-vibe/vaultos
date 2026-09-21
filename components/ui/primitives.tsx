@@ -276,7 +276,17 @@ export function Skeleton({ className }: { className?: string }) {
   );
 }
 
-/** An error, stated plainly, with the server's own words. */
+/**
+ * A SYSTEM failure — something broke.
+ *
+ * Deliberately amber, never red, and deliberately headed "System error".
+ *
+ * Red in this product means one thing only: a policy refusal. A refusal is a
+ * correct outcome — the safety system doing exactly its job — and if a broken
+ * network request wore the same colour and the same shape, the product's most
+ * important moment would read as a bug. So the two are separated at the level
+ * of colour, glyph and wording, and this component is for the bug.
+ */
 export function ErrorNote({
   message,
   onRetry,
@@ -287,15 +297,21 @@ export function ErrorNote({
   return (
     <div
       role="alert"
-      className="rounded-lg border border-reject-500/30 bg-reject-950/30 p-4"
+      className="rounded-lg border border-warn-500/35 bg-warn-950/30 p-4"
     >
       <div className="flex items-start gap-2">
-        <span className="font-mono text-xs text-reject-400" aria-hidden="true">
-          ×
+        <span className="font-mono text-xs text-warn-400" aria-hidden="true">
+          !
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-reject-400">Something failed</p>
-          <p className="mt-1 break-words font-mono text-xs text-ink-300">
+          <p className="text-sm font-medium text-warn-400">
+            System error — this is not a policy decision
+          </p>
+          <p className="mt-1 text-[12px] leading-relaxed text-mute-1">
+            Something failed on the way to an answer. Nothing was decided and
+            nothing moved.
+          </p>
+          <p className="mt-2 break-words font-mono text-xs text-ink-300">
             {message}
           </p>
         </div>
@@ -309,6 +325,37 @@ export function ErrorNote({
           Retry
         </button>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * A policy refusal, presented as what it is: a success.
+ *
+ * Section of the product that matters most, and the easiest one to get wrong.
+ * A refusal is not an error state — it is the single observable proof that
+ * the boundary is real. So it never borrows the vocabulary of failure: no
+ * "error", no "failed", no apology, no retry button offering to try again
+ * until it works. It states the outcome, names the rule, and says plainly
+ * that the system behaved correctly.
+ */
+export function SafetyDecision({
+  headline,
+  children,
+}: {
+  headline: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="rounded-lg border border-reject-500/35 bg-reject-950/25 p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Pill tone="reject">Refused</Pill>
+        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-approve-400">
+          ✓ Safety decision — working as designed
+        </span>
+      </div>
+      <p className="mt-2.5 text-sm leading-relaxed text-ink-100">{headline}</p>
+      {children}
     </div>
   );
 }

@@ -64,6 +64,7 @@ export function OpportunityCard({
           type="button"
           onClick={onSelect}
           aria-pressed={selected}
+          aria-label={`Review ${opportunity.name}`}
           className="flex flex-1 flex-col p-4 text-left"
         >
           <div className="flex items-start justify-between gap-3">
@@ -79,8 +80,15 @@ export function OpportunityCard({
             {loading ? (
               <Skeleton className="h-5 w-20" />
             ) : verdict ? (
-              <Pill tone={approved ? "approve" : "reject"}>
-                {verdict.decision}
+              <Pill
+                tone={approved ? "approve" : "reject"}
+                title={
+                  approved
+                    ? "Every rule you set passed."
+                    : "A rule you set refused this. Nothing moved."
+                }
+              >
+                {approved ? "Allowed" : "Refused"}
               </Pill>
             ) : verdictError ? (
               <Pill tone="warn">No verdict</Pill>
@@ -125,11 +133,17 @@ export function OpportunityCard({
             {loading ? (
               <Skeleton className="h-10 w-full" />
             ) : primaryRule ? (
+              /* A refused card is not a broken card. The green micro-label
+                 says so before the red does, so the grid reads as three
+                 boundaries holding rather than three things going wrong. */
               <div className="rounded border border-reject-500/25 bg-reject-950/25 px-2.5 py-2">
-                <p className="text-[12px] leading-snug text-ink-200">
+                <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-approve-400">
+                  ✓ Boundary held
+                </p>
+                <p className="mt-1 text-[12px] leading-snug text-ink-200">
                   {plainRefusal(primaryRule)}
                 </p>
-                <Mono className="mt-1.5 block text-[10px] text-reject-400/80">
+                <Mono className="mt-1.5 block text-[10px] text-reject-400/90">
                   {primaryRule}
                   {verdict && verdict.violations.length > 1
                     ? ` +${verdict.violations.length - 1}`
@@ -162,9 +176,19 @@ export function OpportunityCard({
           </div>
         </button>
 
-        <p className="border-t border-ink-800 px-4 py-2 text-[10px] text-mute-3">
-          Made-up example on a test network
-        </p>
+        {/* The review affordance, stated in words. A card that only responded
+            to being clicked gave no hint that clicking was the point. */}
+        <div className="flex items-center justify-between gap-2 border-t border-ink-800 px-4 py-2">
+          <p className="text-[10px] text-mute-3">Example · test network</p>
+          <span
+            className={clsx(
+              "font-mono text-[10px] uppercase tracking-wider",
+              selected ? "text-info-500" : "text-mute-1",
+            )}
+          >
+            {selected ? "Reviewing ↓" : "Review →"}
+          </span>
+        </div>
       </Card>
     </motion.div>
   );

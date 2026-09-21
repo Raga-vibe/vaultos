@@ -92,8 +92,8 @@ export default function Opportunities() {
     <div className="space-y-8">
       <Reveal>
         <SectionHeader
-          title="Opportunities"
-          subtitle={`Six made-up examples, each checked against your rules at ${PROBE_AMOUNT}. Three pass. Three don't — for three different reasons.`}
+          title="Choose an opportunity to review"
+          subtitle={`Six made-up examples, each already checked against your rules at ${PROBE_AMOUNT}. Three pass. Three are refused — each by a different rule. Pick any one to take it through the full decision.`}
         />
 
         {list.error ? (
@@ -127,15 +127,22 @@ export default function Opportunities() {
       {chosen ? (
         <Reveal key={chosen.id}>
           <SectionHeader
-            title="Decision"
-            subtitle="Ask the AI what it thinks. Ask your rules what is allowed. Those are two different questions."
+            title="Decision center"
+            subtitle="What SERV advises and what your policy authorises are two different questions, asked separately and answered by different code."
           />
           <Workbench key={chosen.id} opportunity={chosen} onActivity={reprobe} />
         </Reveal>
       ) : (
-        <p className="rounded-lg border border-dashed border-ink-700 px-4 py-8 text-center text-sm text-mute-2">
-          Pick one above to see what the AI thinks and what your rules say.
-        </p>
+        <div className="rounded-lg border border-dashed border-ink-700 px-4 py-10 text-center">
+          <p className="text-sm text-ink-200">
+            Pick an opportunity above to open the decision center.
+          </p>
+          <p className="mx-auto mt-1.5 max-w-md text-[12px] leading-relaxed text-mute-1">
+            You will see SERV&rsquo;s advisory assessment beside the
+            authoritative policy verdict — including the cases where they
+            disagree.
+          </p>
+        </div>
       )}
     </div>
   );
