@@ -44,8 +44,20 @@ export function nodeSupportsRequireEsm(version: string = process.version): boole
 /** A public, credential-free description of the serving runtime. */
 export type RuntimeInfo = {
   node: string;
-  /** Whether the Coinbase SDKs can load at all on this version. */
-  supportsRequireEsm: boolean;
+  /** What the version number alone implies about require(esm). */
+  versionSupportsRequireEsm: boolean;
+  /**
+   * What Node itself reports — the only answer that counts.
+   *
+   * The version number is a claim about the release; this flag is the running
+   * process telling the truth about itself. They came apart on the deployed
+   * host: Node 24.20 by version, ERR_REQUIRE_ESM in practice. A feature can
+   * be switched off by a command-line flag or NODE_OPTIONS no matter what the
+   * version says, so this is reported separately rather than inferred.
+   *
+   * Undefined on any Node old enough not to publish the flag at all.
+   */
+  requireModuleEnabled: boolean | undefined;
   requiresAtLeast: string;
 };
 
@@ -55,9 +67,14 @@ export type RuntimeInfo = {
  * @returns The runtime description.
  */
 export function runtimeInfo(): RuntimeInfo {
+  const features = process.features as unknown as {
+    require_module?: boolean;
+  };
+
   return {
     node: process.version,
-    supportsRequireEsm: nodeSupportsRequireEsm(),
+    versionSupportsRequireEsm: nodeSupportsRequireEsm(),
+    requireModuleEnabled: features.require_module,
     requiresAtLeast: REQUIRE_ESM_MINIMUMS,
   };
 }
