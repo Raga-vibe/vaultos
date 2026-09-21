@@ -72,6 +72,10 @@ const CAPABILITIES = [
     "Check the record",
     "Every decision, kept — including the ones that said no.",
   ],
+  [
+    "Call it from your own agent",
+    "The rules check is an HTTP endpoint. Any agent can ask permission before it acts.",
+  ],
 ] as const;
 
 const STACK = [
@@ -139,8 +143,8 @@ export default function Landing() {
             </h1>
 
             <p className="mx-auto mt-6 max-w-lg text-[15px] leading-relaxed text-mute-1">
-              SERV suggests. Your rules decide. If a rule says no, nothing
-              moves — however good the argument.
+              SERV suggests. Your rules decide. If a rule says no, nothing moves
+              — however good the argument.
             </p>
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">

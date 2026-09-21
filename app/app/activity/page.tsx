@@ -8,6 +8,7 @@
  */
 
 import { AuditTrail } from "../../../components/audit/AuditTrail";
+import { DecisionMeter } from "../../../components/usage/DecisionMeter";
 import { EphemeralNotice } from "../../../components/system/SystemStatus";
 import { Button, Reveal, SectionHeader } from "../../../components/ui/primitives";
 import { api, useAsync } from "../../../lib/ui/api";
@@ -30,6 +31,7 @@ export default function Activity() {
             </Button>
           }
         />
+        <DecisionMeter events={audit.data?.events ?? null} />
         <AuditTrail
           events={audit.data?.events ?? null}
           loading={audit.loading}

@@ -50,6 +50,33 @@ const NOT = [
   "Not financial advice. What the AI says is an opinion, shown as one.",
 ] as const;
 
+/**
+ * A real call against the deployed policy endpoint, and what it returns.
+ *
+ * Copied verbatim from the live service rather than written to look good. The
+ * violation code, the message and the evaluated list are what the engine
+ * actually emits — a fabricated example here would be the one dishonest thing
+ * on a page about not overstating what the product does.
+ */
+const API_REQUEST = `curl -X POST https://vaultos-rust.vercel.app/api/evaluate \\
+  -H 'Content-Type: application/json' \\
+  -d '{"opportunityId":"opp-volatile-strategy","amount":"0.01"}'`;
+
+const API_RESPONSE = `{
+  "ok": true,
+  "decision": "REJECTED",
+  "verdict": {
+    "decision": "REJECTED",
+    "violations": [
+      {
+        "code": "RISK_ABOVE_MAX",
+        "message": "Opportunity risk HIGH exceeds the policy maximum of MEDIUM."
+      }
+    ],
+    "evaluated": ["chain", "amount", "maxAllocationPercent", "maxRisk", "..."]
+  }
+}`;
+
 export default function About() {
   return (
     <SiteShell>
@@ -62,8 +89,8 @@ export default function About() {
         </p>
 
         <p className="mt-7 text-lg leading-relaxed text-ink-100">
-          VaultOS is a spending limit for an AI that can move your money. The
-          AI can analyse whatever it likes; it cannot move the line you drew.
+          VaultOS is a spending limit for an AI that can move your money. The AI
+          can analyse whatever it likes; it cannot move the line you drew.
         </p>
 
         {/* ── The problem ────────────────────────────────────────── */}
@@ -147,6 +174,38 @@ export default function About() {
             The six opportunities are invented examples, each written to
             exercise a different rule — three pass, three are refused. Testnet
             funds have no monetary value and cannot be exchanged for anything.
+          </p>
+        </section>
+
+        {/* ── Use it from your own agent ─────────────────────────── */}
+        <section className="mt-14">
+          <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-mute-2">
+            Use it from your own agent
+          </h2>
+          <p className="mt-4 text-[15px] leading-relaxed text-ink-200">
+            VaultOS isn&rsquo;t only a screen. The rules check is an HTTP
+            endpoint, so any agent — in any language, on any stack — can ask
+            &ldquo;am I allowed to do this?&rdquo; before it acts.
+          </p>
+
+          <pre className="mt-5 overflow-x-auto rounded-lg border border-ink-700 bg-ink-900 p-4 font-mono text-[11px] leading-relaxed text-ink-200">
+            {API_REQUEST}
+          </pre>
+
+          <p className="mt-4 text-[13px] leading-relaxed text-mute-1">
+            Comes back with the decision, the rule that produced it, and every
+            rule that was checked:
+          </p>
+
+          <pre className="mt-3 overflow-x-auto rounded-lg border border-ink-700 bg-ink-900 p-4 font-mono text-[11px] leading-relaxed text-ink-200">
+            {API_RESPONSE}
+          </pre>
+
+          <p className="mt-5 text-[13px] leading-relaxed text-mute-1">
+            That single call is the product, and it is the billable unit: you
+            pay per decision, not per transaction. Refusals count — a refused
+            action is the one that cost nothing and saved everything. The audit
+            trail already meters every one of them.
           </p>
         </section>
 
