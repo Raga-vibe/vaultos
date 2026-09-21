@@ -125,21 +125,28 @@ body {
 /*
   The landing backdrop.
 
-  A fine engineering grid that fades to nothing before it reaches the content,
-  plus one soft radial that lifts the hero off the page. Both are painted
-  once, in CSS, on a fixed layer that never scrolls and never repaints — no
-  canvas, no particles, no JavaScript, and nothing for the compositor to do
-  after first paint.
+  Three layers, all fixed, all painted by the compositor:
 
-  The mask is what makes it read as precision rather than wallpaper: a grid
-  that runs edge to edge looks like a template, and one that dissolves looks
-  like a drawing surface.
+    1. a fine engineering grid, masked so it dissolves before it reaches text
+    2. two slow-drifting colour fields
+    3. a slow sweep down the grid, like a readout refreshing
+
+  Everything animates `transform` and nothing else. No canvas, no particles,
+  no JavaScript, no repaint — the layers are rasterised once and then moved,
+  so the cost is the same whether they are still or drifting.
+
+  The drift is deliberately too slow to watch: ~30 seconds a cycle. You notice
+  the page is alive without noticing anything move, which is the right register
+  for a product about money. Anything faster would read as a screensaver.
+
+  The reduced-motion rule at the foot of this file stops all three dead.
 */
 .landing-backdrop {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  overflow: hidden;
   /* ink-750 rather than ink-850: masked and faded, the darker line vanished
      entirely on a 1920px screen, which is the screen this exists for. */
   background-image:
@@ -160,17 +167,97 @@ body {
   opacity: 0.75;
 }
 
-/* One restrained glow, the brand green, well under the type. */
-.landing-glow {
-  position: fixed;
+/* The sweep. One faint band travelling down the grid, once every 9 seconds. */
+.landing-backdrop::after {
+  content: "";
+  position: absolute;
   inset-inline: 0;
   top: 0;
-  height: 70vh;
+  height: 22vh;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in oklab, var(--color-approve-500) 7%, transparent) 50%,
+    transparent 100%
+  );
+  animation: vaultos-sweep 9s linear infinite;
+  will-change: transform;
+}
+
+@keyframes vaultos-sweep {
+  from {
+    transform: translate3d(0, -25vh, 0);
+  }
+  to {
+    transform: translate3d(0, 105vh, 0);
+  }
+}
+
+/*
+  Two colour fields, drifting against each other.
+
+  Green is the product's own colour and sits under the wordmark; blue is the
+  "in progress" tone and sits off to one side. They move on different periods
+  so the overlap never repeats in a way the eye can lock onto.
+*/
+.landing-glow {
+  position: fixed;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
+  overflow: hidden;
+}
+
+.landing-glow::before,
+.landing-glow::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.landing-glow::before {
+  width: 90vw;
+  height: 70vh;
+  left: 5vw;
+  top: -30vh;
   background: radial-gradient(
-    ellipse 55% 60% at 50% 0%,
-    color-mix(in oklab, var(--color-approve-500) 11%, transparent) 0%,
-    transparent 70%
+    circle,
+    color-mix(in oklab, var(--color-approve-500) 13%, transparent) 0%,
+    transparent 65%
   );
+  animation: vaultos-drift-a 34s ease-in-out infinite;
+}
+
+.landing-glow::after {
+  width: 70vw;
+  height: 55vh;
+  right: -10vw;
+  top: 8vh;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--color-info-500) 9%, transparent) 0%,
+    transparent 65%
+  );
+  animation: vaultos-drift-b 46s ease-in-out infinite;
+}
+
+@keyframes vaultos-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-6vw, 4vh, 0) scale(1.12);
+  }
+}
+
+@keyframes vaultos-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+  50% {
+    transform: translate3d(5vw, -5vh, 0) scale(0.92);
+  }
 }

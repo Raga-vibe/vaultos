@@ -70,9 +70,7 @@ export default function Opportunities() {
       }
     }
 
-    void Promise.all(
-      Array.from({ length: CONCURRENCY }, () => worker()),
-    );
+    void Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
 
     return () => {
       cancelled = true;
@@ -111,36 +109,26 @@ export default function Opportunities() {
           up front — and saying what the page is actually for — turns the grid
           from a shop into a test bench, which is what it is.
         */}
-        <div className="mb-6 rounded-lg border border-ink-700 bg-ink-900/60 p-4">
-          <p className="text-[13px] leading-relaxed text-ink-200">
-            <span className="text-mute-1">What this page is: </span>
-            a test bench, not a shop. None of these is a real investment and
-            none earns anything. Each one exists to make a different rule fire,
-            so you can see your boundaries working before you trust them with
-            anything.
-          </p>
-          {/*
-            Counted, not asserted.
+        {/*
+          One sentence, not three.
 
-            This used to read "three pass, three are refused", which is true of
-            the shipped defaults and false the moment anyone edits a rule — and
-            the policy now persists, so an edited rule outlives the visit that
-            made it. A sentence that contradicts the six cards under it costs
-            more trust than it buys.
-          */}
-          <p className="mt-2.5 text-[13px] leading-relaxed text-mute-1">
-            Every card is already checked against your current policy at{" "}
-            <span className="font-mono text-ink-200">{PROBE_AMOUNT} USDC</span>.
+          The earlier version explained the same idea twice — that these are
+          tests and not offers — and a reader who needs that said twice has
+          already stopped reading. The counts are measured from the cards below
+          rather than asserted, so the sentence cannot contradict them.
+        */}
+        <div className="mb-6 rounded-lg border border-ink-700 bg-ink-900/60 px-4 py-3">
+          <p className="text-[13px] leading-relaxed text-ink-200">
+            These are not real investments. Each one is a made-up move written
+            to trip a different limit, so you can watch your rules work.
             {counted > 0 ? (
               <>
                 {" "}
-                Right now <span className="text-ink-200">{passed} pass</span>{" "}
-                and <span className="text-ink-200">{refused} are refused</span>.
-                Open a refused one to see exactly which rule stopped it.
+                Right now{" "}
+                <span className="text-approve-400">{passed} pass</span> and{" "}
+                <span className="text-reject-400">{refused} are refused</span>.
               </>
-            ) : (
-              " Open a refused one to see exactly which rule stopped it."
-            )}
+            ) : null}
           </p>
         </div>
 
@@ -178,7 +166,11 @@ export default function Opportunities() {
             title="Decision center"
             subtitle="What SERV advises and what your policy authorises are two different questions, asked separately and answered by different code."
           />
-          <Workbench key={chosen.id} opportunity={chosen} onActivity={reprobe} />
+          <Workbench
+            key={chosen.id}
+            opportunity={chosen}
+            onActivity={reprobe}
+          />
         </Reveal>
       ) : (
         <div className="rounded-lg border border-dashed border-ink-700 px-4 py-10 text-center">

@@ -36,56 +36,49 @@ export const metadata: Metadata = {
 
 const LAYERS = [
   {
-    name: "SERV",
-    role: "Advisory",
+    name: "The AI",
+    role: "Suggestion",
     authoritative: false,
-    body: "Reads an action and gives an assessment — risk, liquidity, a suggested size, what concerns it. It has no route to the wallet and no way to authorise anything.",
+    body: "Looks at a move and says what it thinks. It cannot reach your wallet and cannot approve anything.",
   },
   {
-    name: "Policy engine",
-    role: "Authorization",
+    name: "Your rules",
+    role: "Decides",
     authoritative: true,
-    body: "Checks the proposed action against the limits you set. Deterministic, and it has never read a word the assessment said. This is the only layer that can say yes.",
+    body: "Plain code that checks the move against the limits you set. It never sees what the AI said. Only this can say yes.",
   },
   {
-    name: "AgentKit",
-    role: "Execution",
+    name: "The wallet",
+    role: "Acts",
     authoritative: false,
-    body: "Signs and submits what was authorised, on Base Sepolia. It carries out a decision; it does not make one.",
+    body: "Sends the transaction — but only one that was already approved.",
   },
 ];
 
 const CAPABILITIES = [
   [
-    "Set the boundaries",
-    "Twelve rules — size, risk, liquidity, leverage, total exposure, rate limits, which protocols are allowed.",
+    "Set your limits",
+    "How much, how risky, how easily you can get your money back.",
   ],
   [
-    "Put an action through the pipeline",
-    "Six proposed actions, each written to make a different rule fire. Watch every stage answer.",
+    "Watch a move get checked",
+    "Six examples, each written to trip a different limit.",
   ],
   [
-    "See exactly why something was refused",
-    "Every refusal names the rule that produced it — in plain language, and in the code the engine emitted.",
+    "See exactly why it was refused",
+    "Every refusal names the rule that stopped it.",
   ],
   [
-    "Execute what was approved",
-    "A real transaction on Base Sepolia, reported only once a block confirms it.",
-  ],
-  [
-    "Inspect the audit trail",
-    "Append-only. What was assessed, what was decided, and which rule decided it.",
+    "Check the record",
+    "Every decision, kept — including the ones that said no.",
   ],
 ] as const;
 
 const STACK = [
-  [
-    "SERV Reasoning",
-    "Structured assessment, schema-validated and discarded if malformed",
-  ],
-  ["Coinbase AgentKit", "Wallet custody and on-chain execution"],
+  ["SERV Reasoning", "The AI that assesses"],
+  ["Coinbase AgentKit", "Holds the wallet, sends the transaction"],
   ["Base Sepolia", "Test network — real transactions, no real money"],
-  ["Supabase", "Audit persistence"],
+  ["Supabase", "Keeps the record"],
 ] as const;
 
 /** A section with its label in the left channel and its prose in the right. */
@@ -139,16 +132,15 @@ export default function Landing() {
             </p>
 
             <h1 className="mx-auto mt-9 max-w-2xl text-3xl leading-[1.15] tracking-tight text-ink-50 sm:text-5xl">
-              Let an AI assess an action.
+              A spending limit for AI
               <span className="block text-mute-1">
-                Your rules decide whether it happens.
+                that can move your money.
               </span>
             </h1>
 
-            <p className="mx-auto mt-6 max-w-xl text-[15px] leading-relaxed text-mute-1">
-              VaultOS is a control layer for autonomous wallets. It lets a model
-              analyse an action without giving that model any authority over the
-              limits protecting the wallet.
+            <p className="mx-auto mt-6 max-w-lg text-[15px] leading-relaxed text-mute-1">
+              The AI suggests. Your rules decide. If a rule says no, nothing
+              moves — however good the argument.
             </p>
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
@@ -172,31 +164,13 @@ export default function Landing() {
           <ScrollReveal>
             <Section label="The problem">
               <p className="max-w-2xl text-xl leading-relaxed text-ink-100 sm:text-2xl">
-                Autonomous agents can already reason and act. The harder
-                question is what they should be allowed to do.
+                Give an AI your wallet and it will eventually suggest something
+                you would never agree to — and argue for it well.
               </p>
               <p className="mt-5 max-w-2xl text-[15px] leading-relaxed text-mute-1">
-                Give an agent a wallet and the failure mode is not that it
-                reasons badly — it is that a confident, well-argued proposal
-                outside your limits is indistinguishable from a good one. Asking
-                a model to respect a limit does not create a limit. It creates a
-                request, competing with everything else in the context.
-              </p>
-            </Section>
-          </ScrollReveal>
-
-          {/* ── The approach ───────────────────────────────────── */}
-          <ScrollReveal>
-            <Section label="The approach">
-              <p className="max-w-2xl text-xl leading-relaxed text-ink-100 sm:text-2xl">
-                VaultOS separates reasoning from authorization.
-              </p>
-              <p className="mt-5 max-w-2xl text-[15px] leading-relaxed text-mute-1">
-                You define the boundaries. SERV assesses the action. Your policy
-                determines whether it is authorised. AgentKit executes what was
-                approved. VaultOS records what happened. Each is a different
-                piece of code, and the one that decides cannot be reached by the
-                one that reasons.
+                Writing the limit into its instructions does not help. That is a
+                request, competing with everything else you told it. A limit has
+                to live somewhere the AI cannot reach.
               </p>
             </Section>
           </ScrollReveal>
@@ -205,7 +179,7 @@ export default function Landing() {
           <ScrollReveal>
             <Section label="How it works" id="how-it-works">
               <p className="mb-10 max-w-2xl text-xl leading-relaxed text-ink-100 sm:text-2xl">
-                Seven gates. An action has to pass every one of them, in order.
+                Seven checks. A move has to pass all of them, in order.
               </p>
               <GateFlow />
             </Section>
@@ -215,8 +189,7 @@ export default function Landing() {
           <ScrollReveal>
             <Section label="Why it is split">
               <p className="mb-8 max-w-2xl text-xl leading-relaxed text-ink-100 sm:text-2xl">
-                Three layers, three jobs. Only one of them can authorise
-                anything.
+                Three parts, three jobs. Only one of them can say yes.
               </p>
 
               <div className="grid gap-3 md:grid-cols-3">
@@ -272,15 +245,10 @@ export default function Landing() {
           <ScrollReveal>
             <Section label="Running today">
               <p className="max-w-2xl text-[15px] leading-relaxed text-ink-200">
-                VaultOS demonstrates this workflow on Base Sepolia. The wallet,
-                the balances, the transfers and the confirmations are real and
-                verifiable on a block explorer. The six actions are synthetic
-                examples, each written to exercise a different rule — three
-                pass, three are refused.
-              </p>
-              <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-mute-1">
-                Testnet funds have no monetary value. Nothing here earns a
-                return, and VaultOS is not an investment service.
+                This runs on a test network. The wallet and the transactions are
+                real and you can look them up on a block explorer, but the money
+                has no value and the six examples are made up — each one written
+                to trip a different limit.
               </p>
 
               <dl className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

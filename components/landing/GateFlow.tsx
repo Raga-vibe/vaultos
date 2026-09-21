@@ -50,45 +50,45 @@ type Stage = {
 const STAGES: readonly Stage[] = [
   {
     key: "opportunity",
-    label: "Opportunity",
+    label: "Something is proposed",
     role: null,
-    body: "An action is proposed. Nothing has happened yet.",
+    body: "A move the agent wants to make. Nothing has happened yet.",
   },
   {
     key: "serv",
     label: "SERV assessment",
-    role: "Advisory",
-    body: "The AI reads it and says what it thinks — risk, a suggested size, what worries it.",
+    role: "Suggestion",
+    body: "The AI says what it thinks — how risky, how much.",
   },
   {
     key: "policy",
-    label: "Policy verification",
-    role: "Authoritative",
-    body: "Separate code checks the action against your rules. It never reads the assessment.",
+    label: "Your rules are checked",
+    role: "Decides",
+    body: "Separate code, which never sees what the AI said.",
   },
   {
     key: "decision",
-    label: "Decision",
+    label: "Allowed or refused",
     role: null,
-    body: "Allowed, or refused. Only this stage can say yes.",
+    body: "Only this step can say yes.",
   },
   {
     key: "execution",
-    label: "AgentKit execution",
+    label: "The wallet acts",
     role: null,
-    body: "Runs only what was allowed. It has no opinion of its own.",
+    body: "Runs only what was allowed.",
   },
   {
     key: "transaction",
     label: "Transaction",
     role: null,
-    body: "Submitted to Base Sepolia, and confirmed only when a block says so.",
+    body: "On Base Sepolia, confirmed by a block.",
   },
   {
     key: "audit",
-    label: "Audit record",
+    label: "Written down",
     role: null,
-    body: "What was assessed, what was decided, and which rule decided it.",
+    body: "What was decided, and which rule decided it.",
   },
 ];
 
@@ -139,7 +139,7 @@ function Gate({
         <span
           className={clsx(
             "relative z-10 flex h-6 w-6 items-center justify-center rounded-full border font-mono text-[10px]",
-            stage.role === "Authoritative"
+            stage.role === "Decides"
               ? "border-approve-500/60 bg-approve-950 text-approve-400"
               : isDecision
                 ? "border-info-500/60 bg-info-950 text-info-500"
@@ -173,7 +173,7 @@ function Gate({
             <span
               className={clsx(
                 "rounded border px-1.5 py-px font-mono text-[9px] uppercase tracking-wider",
-                stage.role === "Authoritative"
+                stage.role === "Decides"
                   ? "border-approve-500/40 bg-approve-950/60 text-approve-400"
                   : "border-ink-600 bg-ink-850 text-mute-1",
               )}
