@@ -9,7 +9,7 @@
  */
 
 import { Card, Mono, Skeleton, StatusDot } from "../ui/primitives";
-import type { Async, Health } from "../../lib/ui/api";
+import { api, useAsync, type Async, type Health } from "../../lib/ui/api";
 
 /**
  * Says plainly when nothing on this deployment is being kept.
@@ -139,4 +139,18 @@ export function SystemStatus({ state }: { state: Async<Health> }) {
       ) : null}
     </Card>
   );
+}
+
+/**
+ * System status that fetches its own data, on mount.
+ *
+ * The full health check resolves the CDP wallet and costs six to seven
+ * seconds. This panel lives inside a collapsed disclosure that most people
+ * never open, so paying for it on every page load was buying an answer to a
+ * question nobody asked. Mounting this component is what triggers the fetch —
+ * render it only once the disclosure is open.
+ */
+export function SystemStatusOnDemand() {
+  const health = useAsync(() => api.health(), []);
+  return <SystemStatus state={health} />;
 }

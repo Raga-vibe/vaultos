@@ -97,7 +97,10 @@ export type WalletInfo = {
 };
 
 export type Health = {
+  /** Absent in lite mode, which skips the wallet resolution. */
   wallet?: WalletInfo["wallet"];
+  lite?: boolean;
+  rpcConfigured?: boolean;
   expectedChainId?: number;
   onExpectedChain?: boolean;
   store?: "memory" | "supabase";
@@ -230,6 +233,14 @@ export function invalidateReads(): void {
 
 export const api = {
   health: () => cached("health", () => call<Health>("/api/health")),
+  /*
+    The cheap health check. Skips the CDP wallet resolution, which is the
+    slowest call in the product. Use this whenever the component only needs
+    `store` or `depositAddressConfigured` — which, it turns out, is every
+    consumer except System status.
+  */
+  healthLite: () =>
+    cached("health:lite", () => call<Health>("/api/health?lite=1")),
   wallet: () => cached("wallet", () => call<WalletInfo>("/api/wallet")),
   opportunities: () =>
     cached("opportunities", () =>

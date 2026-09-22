@@ -23,6 +23,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GateFlow } from "../components/landing/GateFlow";
+import { LiveProof } from "../components/landing/LiveProof";
 import { ScrollReveal } from "../components/landing/ScrollReveal";
 import { BrandMark } from "../components/shell/Brand";
 import { SiteShell } from "../components/shell/SiteShell";
@@ -270,6 +271,15 @@ export default function Landing() {
                   </div>
                 ))}
               </dl>
+
+              {/*
+                The only part of this page that is not an argument. It reads
+                the live audit trail and renders nothing unless there is a
+                confirmed transaction to point at.
+              */}
+              <div className="mt-8">
+                <LiveProof />
+              </div>
             </Section>
           </ScrollReveal>
 

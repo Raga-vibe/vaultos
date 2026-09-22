@@ -124,7 +124,7 @@ export function Workbench({
   // Whether this deployment has a destination for transfers at all. Without
   // OPPORTUNITY_DEPOSIT_ADDRESS the server refuses to guess one, so Execute
   // would fail on click — better to say so before the click than after.
-  const health = useAsync(() => api.health(), []);
+  const health = useAsync(() => api.healthLite(), []);
   const canReachChain = health.data?.depositAddressConfigured !== false;
 
   /*

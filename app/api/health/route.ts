@@ -17,7 +17,41 @@ import { runtimeInfo } from "../../../lib/runtime-info";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+/**
+ * LITE MODE — `GET /api/health?lite=1`
+ *
+ * The full check resolves the CDP wallet, which is the most expensive thing
+ * this application does: measured at six to seven seconds, and on a platform
+ * that gives every request a cold function, no in-process cache helps.
+ *
+ * Four separate surfaces were paying that cost to read a single cheap field.
+ * Three of them only wanted `store`, to decide whether to warn that this
+ * deployment has no database; one only wanted `depositAddressConfigured`.
+ * None of them looked at the wallet at all.
+ *
+ * Lite mode answers exactly those questions and skips the wallet entirely.
+ * It only ever returns LESS than the full check — never more — so it cannot
+ * widen what this endpoint exposes. The full response is unchanged, and
+ * System status still uses it, because proving the wallet resolves is the
+ * reason this endpoint exists.
+ *
+ * This is diagnostics. Nothing here is an authorization input, in either mode.
+ */
+function liteHealth() {
+  return NextResponse.json({
+    ok: true,
+    lite: true,
+    runtime: runtimeInfo(),
+    expectedChainId: BASE_SEPOLIA_CHAIN_ID,
+    store: getStore().kind,
+    depositAddressConfigured: Boolean(
+      process.env.OPPORTUNITY_DEPOSIT_ADDRESS?.trim(),
+    ),
+    rpcConfigured: Boolean(process.env.RPC_URL?.trim()),
+  });
+}
+
+export async function GET(request: Request) {
   const leaks = findPublicCredentialLeaks();
   if (leaks.length > 0) {
     return NextResponse.json(
@@ -29,6 +63,10 @@ export async function GET() {
       },
       { status: 500 },
     );
+  }
+
+  if (new URL(request.url).searchParams.get("lite") === "1") {
+    return liteHealth();
   }
 
   try {

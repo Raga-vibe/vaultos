@@ -20,10 +20,11 @@
  */
 
 import Link from "next/link";
+import { useState } from "react";
 import { AgentStatus } from "../../components/agent/AgentStatus";
 import { AuditTrail } from "../../components/audit/AuditTrail";
 import { PolicyPanel } from "../../components/policy/PolicyPanel";
-import { SystemStatus } from "../../components/system/SystemStatus";
+import { SystemStatusOnDemand } from "../../components/system/SystemStatus";
 import { TestnetNotice } from "../../components/explain/TestnetNotice";
 import { Reveal, SectionHeader } from "../../components/ui/primitives";
 import { WalletCard } from "../../components/wallet/WalletCard";
@@ -41,10 +42,18 @@ const STEPS = [
 ] as const;
 
 export default function Overview() {
+  /*
+    Three reads, fired together — not four.
+
+    /api/health was the fourth, and it resolves the same CDP wallet that
+    /api/wallet does: the slowest call in the product, paid twice in parallel
+    on every load. AgentStatus now derives readiness from the wallet response,
+    and System status fetches health for itself when someone opens it.
+  */
   const wallet = useAsync(() => api.wallet(), []);
-  const health = useAsync(() => api.health(), []);
   const policy = useAsync(() => api.policy(), []);
   const audit = useAsync(() => api.audit(), []);
+  const [systemOpen, setSystemOpen] = useState(false);
 
   return (
     <div className="space-y-9">
@@ -119,7 +128,7 @@ export default function Overview() {
           />
           <div className="grid items-start gap-4 lg:grid-cols-[1.7fr_1fr]">
             <WalletCard state={wallet} />
-            <AgentStatus health={health} policy={policy.data?.policy ?? null} />
+            <AgentStatus wallet={wallet} policy={policy.data?.policy ?? null} />
           </div>
         </section>
       </Reveal>
@@ -170,7 +179,10 @@ export default function Overview() {
 
       {/* ── System, folded away ──────────────────────────────────── */}
       <Reveal delay={0.24}>
-        <details className="group">
+        <details
+          className="group"
+          onToggle={(e) => setSystemOpen(e.currentTarget.open)}
+        >
           <summary className="cursor-pointer list-none font-mono text-[11px] uppercase tracking-[0.14em] text-mute-2 transition-colors hover:text-ink-100">
             <span
               aria-hidden="true"
@@ -181,7 +193,7 @@ export default function Overview() {
             System status
           </summary>
           <div className="mt-3">
-            <SystemStatus state={health} />
+            {systemOpen ? <SystemStatusOnDemand /> : null}
           </div>
         </details>
       </Reveal>

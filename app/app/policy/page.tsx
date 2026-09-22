@@ -15,7 +15,7 @@ import { api, useAsync } from "../../../lib/ui/api";
 
 export default function PolicyPage() {
   const policy = useAsync(() => api.policy(), []);
-  const health = useAsync(() => api.health(), []);
+  const health = useAsync(() => api.healthLite(), []);
 
   return (
     <div className="space-y-6">

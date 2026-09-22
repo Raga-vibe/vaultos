@@ -11,7 +11,8 @@
  */
 
 import { Card, Pill, Skeleton, StatusDot } from "../ui/primitives";
-import type { Async, Health, Policy } from "../../lib/ui/api";
+import { BASE_SEPOLIA_CHAIN_ID } from "../../lib/policy/types";
+import type { Async, Policy, WalletInfo } from "../../lib/ui/api";
 
 /**
  * Whether a human still has to confirm each action.
@@ -23,14 +24,22 @@ function isSupervised(policy: Policy | null): boolean {
   return policy ? !policy.autoExecute : true;
 }
 
+/**
+ * Readiness is derived from the WALLET response, not from /api/health.
+ *
+ * Both endpoints resolve the same CDP wallet, so asking for health here made
+ * Overview pay for that resolution twice on every load, in parallel, for one
+ * boolean that the wallet response already answers. Same fact, same source of
+ * truth, one request.
+ */
 export function AgentStatus({
-  health,
+  wallet,
   policy,
 }: {
-  health: Async<Health>;
+  wallet: Async<WalletInfo>;
   policy: Policy | null;
 }) {
-  if (health.loading) {
+  if (wallet.loading) {
     return (
       <Card className="p-4">
         <Skeleton className="h-3 w-24" />
@@ -40,7 +49,8 @@ export function AgentStatus({
   }
 
   const ready =
-    Boolean(health.data?.wallet?.address) && health.data?.onExpectedChain === true;
+    Boolean(wallet.data?.wallet?.address) &&
+    wallet.data?.wallet?.chainId === String(BASE_SEPOLIA_CHAIN_ID);
   const supervised = isSupervised(policy);
 
   return (

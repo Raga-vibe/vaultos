@@ -309,6 +309,7 @@ Milestone 1 is complete. Nothing in this repo is simulated.
 | Route | Does |
 |---|---|
 | `GET /api/health` | Wallet smoke test; reports the serving Node runtime and which store is active |
+| `GET /api/health?lite=1` | The same check without resolving the CDP wallet. Returns runtime, store, `depositAddressConfigured` and `rpcConfigured` in milliseconds instead of seconds. Used by every screen that only needs those fields; the full check is reserved for System status. |
 | `GET /api/wallet` | Address, network, native and USDC balances |
 | `GET /api/opportunities` | The opportunity records |
 | `GET /api/policy` | Current policy, or the conservative default |

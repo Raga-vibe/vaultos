@@ -134,8 +134,14 @@ export default function Opportunities() {
               <>
                 {" "}
                 Right now{" "}
-                <span className="text-approve-400">{passed} pass</span> and{" "}
-                <span className="text-reject-400">{refused} are refused</span>.
+                <span className="text-approve-400">
+                  {passed} {passed === 1 ? "passes" : "pass"}
+                </span>{" "}
+                and{" "}
+                <span className="text-reject-400">
+                  {refused} {refused === 1 ? "is" : "are"} refused
+                </span>
+                .
               </>
             ) : null}
           </p>
