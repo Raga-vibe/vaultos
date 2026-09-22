@@ -10,6 +10,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { OpportunityCard } from "../../../components/opportunities/OpportunityCard";
 import { Workbench } from "../../../components/decision/Workbench";
 import {
@@ -24,6 +25,7 @@ import { api, useAsync, type Verdict } from "../../../lib/ui/api";
 const PROBE_AMOUNT = "0.01";
 
 export default function Opportunities() {
+  const reduce = useReducedMotion();
   const list = useAsync(() => api.opportunities(), []);
   const [verdicts, setVerdicts] = useState<Record<
     string,
@@ -150,15 +152,24 @@ export default function Opportunities() {
         {list.error ? (
           <ErrorNote message={list.error} onRetry={list.reload} />
         ) : list.loading || !list.data ? (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="h-64 w-full" />
             ))}
           </div>
         ) : (
-          <ul className="grid list-none gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {list.data.opportunities.map((o) => (
-              <li key={o.id}>
+          <ul className="grid list-none gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {list.data.opportunities.map((o, n) => (
+              <motion.li
+                key={o.id}
+                initial={reduce ? false : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.35,
+                  delay: n * 0.05,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+              >
                 <OpportunityCard
                   opportunity={o}
                   verdict={verdicts?.[o.id]?.verdict ?? null}
@@ -169,7 +180,7 @@ export default function Opportunities() {
                     setSelected((s) => (s === o.id ? null : o.id))
                   }
                 />
-              </li>
+              </motion.li>
             ))}
           </ul>
         )}

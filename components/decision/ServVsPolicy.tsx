@@ -115,9 +115,30 @@ function Contrast({
   const code = verdict.violations[0]?.code ?? null;
   const field = code ? RULE_FOR_CODE[code] : undefined;
   const rule = field ? PLAIN_RULES[field] : undefined;
+  const reduce = useReducedMotion();
 
+  /*
+    The verdict lands, rather than appears.
+
+    This row is the defining moment of the product — the AI recommended one
+    thing and independent code said another — so it is the one place in the
+    workspace where the motion is allowed to be felt: the word settles in from
+    slightly larger, like a stamp, and a refusal draws a ring that flares once
+    and settles. Transform and opacity only. Keyed on the decision, so it
+    replays if the verdict changes, and absent under reduced motion.
+  */
   return (
-    <div className="rounded-lg border border-ink-700 bg-ink-900/70 p-4">
+    <div className="relative rounded-lg border border-ink-700 bg-ink-900/70 p-4">
+      {refused ? (
+        <motion.span
+          key={`ring-${verdict.decision}-${code ?? ""}`}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-reject-500/70"
+          initial={reduce ? { opacity: 0.4 } : { opacity: 0 }}
+          animate={reduce ? { opacity: 0.4 } : { opacity: [0, 1, 0.4] }}
+          transition={{ duration: 0.9, times: [0, 0.35, 1], ease: "easeOut" }}
+        />
+      ) : null}
       <div className="grid gap-4 sm:grid-cols-3 sm:items-end">
         <div>
           <p className="text-[10px] uppercase tracking-[0.12em] text-mute-1">
@@ -141,15 +162,19 @@ function Contrast({
           <p className="text-[10px] uppercase tracking-[0.12em] text-mute-1">
             Policy verdict
           </p>
-          <span
+          <motion.span
+            key={verdict.decision}
+            initial={reduce ? false : { opacity: 0, scale: 1.35 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }}
             className={clsx(
-              "mt-1 block font-mono text-2xl leading-none tracking-tight",
+              "mt-1 block origin-left font-mono text-2xl leading-none tracking-tight",
               refused ? "text-reject-400" : "text-approve-400",
             )}
           >
             <span aria-hidden="true">{refused ? "× " : "✓ "}</span>
             {refused ? "REFUSED" : "ALLOWED"}
-          </span>
+          </motion.span>
         </div>
       </div>
 
@@ -208,9 +233,30 @@ export function ServVsPolicy({
                   SERV is reasoning&hellip;
                 </p>
                 <p className="mt-1.5 text-[12px] leading-relaxed text-mute-1">
-                  This usually takes about 20 seconds. Nothing is stuck — the
-                  model is working through the move.
+                  About 20 seconds. Nothing is stuck, and nothing is approved
+                  while it thinks — only your rules can do that.
                 </p>
+                {/* Indeterminate on purpose. A percentage would be invented;
+                    SERV does not report progress, so this only says that
+                    work is happening. A sliver sweeping a track — transform
+                    only, and absent under reduced motion. */}
+                <div
+                  className="relative mt-4 h-0.5 overflow-hidden rounded-full bg-ink-800"
+                  aria-hidden="true"
+                >
+                  {reduce ? null : (
+                    <motion.span
+                      className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-info-500/70"
+                      initial={{ x: "-100%" }}
+                      animate={{ x: "300%" }}
+                      transition={{
+                        duration: 1.6,
+                        repeat: Infinity,
+                        ease: [0.45, 0, 0.55, 1],
+                      }}
+                    />
+                  )}
+                </div>
                 <div className="mt-4 space-y-3">
                   <Skeleton className="h-3 w-32" />
                   <Skeleton className="h-3 w-full" />

@@ -1,8 +1,8 @@
 /**
  * The workspace layout.
  *
- * Everything under /app wears the application shell — a fixed rail on desktop,
- * a bottom bar on mobile. The public pages deliberately do not: the landing
+ * Everything under /app wears the application shell — a slim top bar, and a
+ * bottom bar on phones. The public pages deliberately do not: the landing
  * page explains VaultOS, this side is VaultOS, and giving them the same chrome
  * would blur the one distinction the split exists to draw.
  */

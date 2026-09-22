@@ -93,16 +93,27 @@ export function OpportunityCard({
               {loading ? (
                 <Skeleton className="h-5 w-20" />
               ) : verdict ? (
-                <Pill
-                  tone={approved ? "approve" : "reject"}
-                  title={
-                    approved
-                      ? "Every rule passed."
-                      : "A rule stopped this. Nothing moved."
-                  }
+                /* The verdict settles in when its check returns, so six
+                   answers arriving one by one read as six decisions being
+                   made — which is what is happening. */
+                <motion.span
+                  key={verdict.decision}
+                  className="inline-block"
+                  initial={reduce ? false : { opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
                 >
-                  {approved ? "Allowed" : "Refused"}
-                </Pill>
+                  <Pill
+                    tone={approved ? "approve" : "reject"}
+                    title={
+                      approved
+                        ? "Every rule passed."
+                        : "A rule stopped this. Nothing moved."
+                    }
+                  >
+                    {approved ? "Allowed" : "Refused"}
+                  </Pill>
+                </motion.span>
               ) : verdictError ? (
                 <Pill tone="warn">No verdict</Pill>
               ) : null}

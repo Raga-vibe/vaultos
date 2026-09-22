@@ -48,7 +48,7 @@ function Rule({
   const plain = PLAIN_RULES[field];
 
   return (
-    <div className="border-b border-ink-800 px-4 py-4 last:border-b-0">
+    <div className="bg-ink-900 px-4 py-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className="text-[13px] font-medium text-ink-100">
           {plain.title}
@@ -94,6 +94,35 @@ function GroupHeading({ title, blurb }: { title: string; blurb: string }) {
       </h3>
       <p className="mt-0.5 text-[11px] leading-snug text-mute-1">{blurb}</p>
     </div>
+  );
+}
+
+/**
+ * A group of rules: its heading, then its rules in a grid.
+ *
+ * Two columns on wide screens. Twelve rules in one column ran past two
+ * thousand pixels, and each rule is short enough to sit beside another. The
+ * hairlines between cells are the 1px gap showing the grid's background
+ * through, so every edge is drawn once and none doubles up. A group with an
+ * odd count lets its last rule take the full row rather than leaving an empty
+ * cell beside it.
+ */
+function RuleGroup({
+  title,
+  blurb,
+  children,
+}: {
+  title: string;
+  blurb: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="border-t border-ink-800 first:border-t-0">
+      <GroupHeading title={title} blurb={blurb} />
+      <div className="grid gap-px bg-ink-800 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
+        {children}
+      </div>
+    </section>
   );
 }
 
@@ -355,7 +384,7 @@ function OptionalNumber({
       <Toggle
         id={`${id}-enabled`}
         checked={value !== undefined}
-        onChange={(on) => onChange(on ? (min || 0) : undefined)}
+        onChange={(on) => onChange(on ? min || 0 : undefined)}
         onLabel="In force"
         offLabel="Not set"
       />
@@ -606,302 +635,315 @@ export function PolicyPanel({
           </div>
         </Card>
       ) : (
-      <Card>
-        {!editing || !draft ? (
-          <>
-            <GroupHeading
-              title="Core limits"
-              blurb="Asked on every single move."
-            />
-            <Rule
-              field="maxAllocationPercent"
-              value={`${p.maxAllocationPercent}%`}
-            />
-            <Rule
-              field="maxRisk"
-              value={p.maxRisk}
-              tone={p.maxRisk === "HIGH" ? "warn" : "neutral"}
-            />
-            <Rule field="minLiquidity" value={p.minLiquidity} />
-            <GroupHeading
-              title="Behaviour"
-              blurb="What it may do without you."
-            />
-            <Rule
-              field="leverageAllowed"
-              value={p.leverageAllowed ? "ALLOWED" : "NEVER"}
-              tone={p.leverageAllowed ? "warn" : "approve"}
-            />
-            <Rule
-              field="autoExecute"
-              value={p.autoExecute ? "ON ITS OWN" : "ASKS YOU FIRST"}
-              tone={p.autoExecute ? "warn" : "approve"}
-            />
-            {compact ? null : (
-              <>
-            <GroupHeading
-              title="Exposure controls"
-              blurb="Limits across everything, and over time."
-            />
-            <Rule
-              field="maxTotalExposurePercent"
-              value={
-                p.maxTotalExposurePercent === undefined
-                  ? "NOT SET"
-                  : `${p.maxTotalExposurePercent}%`
-              }
-            />
-            <Rule
-              field="minReserveAtomic"
-              value={
-                p.minReserveAtomic === undefined
-                  ? "NOT SET"
-                  : formatAtomic(p.minReserveAtomic, 6)
-              }
-            />
-            <Rule
-              field="maxActionsPerDay"
-              value={
-                p.maxActionsPerDay === undefined
-                  ? "NOT SET"
-                  : `${p.maxActionsPerDay} a day`
-              }
-            />
-            <Rule
-              field="maxDailyDeployedPercent"
-              value={
-                p.maxDailyDeployedPercent === undefined
-                  ? "NOT SET"
-                  : `${p.maxDailyDeployedPercent}%`
-              }
-            />
-            <Rule
-              field="cooldownSeconds"
-              value={
-                p.cooldownSeconds === undefined
-                  ? "NOT SET"
-                  : formatSeconds(p.cooldownSeconds)
-              }
-            />
-            <GroupHeading
-              title="Protocol controls"
-              blurb="Where the money may and may not go."
-            />
-            <Rule
-              field="allowedProtocols"
-              value={
-                p.allowedProtocols === undefined
-                  ? "NOT SET"
-                  : p.allowedProtocols.length === 0
-                    ? "NONE ALLOWED"
-                    : `${p.allowedProtocols.length} listed`
-              }
-            >
-              {p.allowedProtocols && p.allowedProtocols.length > 0 ? (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {p.allowedProtocols.map((x) => (
-                    <Pill key={x} tone="neutral">
-                      {x}
-                    </Pill>
-                  ))}
-                </div>
-              ) : null}
-            </Rule>
-            <Rule
-              field="blockedProtocols"
-              value={
-                p.blockedProtocols === undefined
-                  ? "NOT SET"
-                  : `${p.blockedProtocols.length} listed`
-              }
-            >
-              {p.blockedProtocols && p.blockedProtocols.length > 0 ? (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {p.blockedProtocols.map((x) => (
-                    <Pill key={x} tone="reject">
-                      {x}
-                    </Pill>
-                  ))}
-                </div>
-              ) : null}
-            </Rule>
-              </>
-            )}
-          </>
-        ) : (
-          <>
-            <GroupHeading
-              title="Core limits"
-              blurb="Asked on every single move."
-            />
-            <Control
-              label="Biggest single move"
-              hint="How much of your money can go into one thing at once."
-            >
-              <PercentSlider
-                id="maxAllocationPercent"
-                value={draft.maxAllocationPercent}
-                onChange={(n) => set("maxAllocationPercent", n)}
-              />
-            </Control>
-
-            <Control label="Riskiest thing allowed" hint="Anything riskier is refused outright.">
-              <Segmented
-                name="Max risk"
-                options={BANDS}
-                value={draft.maxRisk}
-                onChange={(v) => set("maxRisk", v)}
-              />
-            </Control>
-
-            <Control label="Getting your money out" hint="HIGH means you can withdraw any time.">
-              <Segmented
-                name="Min liquidity"
-                options={BANDS}
-                value={draft.minLiquidity}
-                onChange={(v) => set("minLiquidity", v)}
-              />
-            </Control>
-
-            <GroupHeading
-              title="Behaviour"
-              blurb="What it may do without you."
-            />
-            <Control
-              label="Borrowing to invest"
-              hint="Borrowing multiplies losses as well as gains."
-            >
-              <Toggle
-                id="leverageAllowed"
-                checked={draft.leverageAllowed}
-                onChange={(v) => set("leverageAllowed", v)}
-                onLabel="Allowed"
-                offLabel="Not allowed"
-              />
-            </Control>
-
-            <Control
-              label="Acting without asking"
-              hint="When off, you confirm every move yourself."
-            >
-              <Toggle
-                id="autoExecute"
-                checked={draft.autoExecute}
-                onChange={(v) => set("autoExecute", v)}
-                onLabel="On"
-                offLabel="Off"
-              />
-            </Control>
-
-            <GroupHeading
-              title="Exposure controls"
-              blurb="Limits across everything, and over time."
-            />
-            <Control
-              label="Most invested at once"
-              hint="Across everything, not per move."
-            >
-              <OptionalNumber
-                id="maxTotalExposurePercent"
-                value={draft.maxTotalExposurePercent}
-                onChange={(v) => set("maxTotalExposurePercent", v)}
-                max={100}
-                suffix="%"
-              />
-            </Control>
-
-            <Control
-              label="Untouchable reserve"
-              hint="Money that must always stay put. 1 USDC = 1000000."
-            >
-              <div className="flex flex-wrap items-center gap-3">
-                <Toggle
-                  id="minReserveAtomic-enabled"
-                  checked={draft.minReserveAtomic !== undefined}
-                  onChange={(on) =>
-                    set("minReserveAtomic", on ? "0" : undefined)
-                  }
-                  onLabel="In force"
-                  offLabel="Not set"
+        <Card className="overflow-hidden">
+          {!editing || !draft ? (
+            <>
+              <RuleGroup
+                title="Core limits"
+                blurb="Asked on every single move."
+              >
+                <Rule
+                  field="maxAllocationPercent"
+                  value={`${p.maxAllocationPercent}%`}
                 />
-                {draft.minReserveAtomic !== undefined ? (
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={draft.minReserveAtomic}
-                    onChange={(e) =>
-                      set(
-                        "minReserveAtomic",
-                        e.target.value.replace(/[^\d]/g, ""),
-                      )
+                <Rule
+                  field="maxRisk"
+                  value={p.maxRisk}
+                  tone={p.maxRisk === "HIGH" ? "warn" : "neutral"}
+                />
+                <Rule field="minLiquidity" value={p.minLiquidity} />
+              </RuleGroup>
+              <RuleGroup title="Behaviour" blurb="What it may do without you.">
+                <Rule
+                  field="leverageAllowed"
+                  value={p.leverageAllowed ? "ALLOWED" : "NEVER"}
+                  tone={p.leverageAllowed ? "warn" : "approve"}
+                />
+                <Rule
+                  field="autoExecute"
+                  value={p.autoExecute ? "ON ITS OWN" : "ASKS YOU FIRST"}
+                  tone={p.autoExecute ? "warn" : "approve"}
+                />
+              </RuleGroup>
+              {compact ? null : (
+                <>
+                  <RuleGroup
+                    title="Exposure controls"
+                    blurb="Limits across everything, and over time."
+                  >
+                    <Rule
+                      field="maxTotalExposurePercent"
+                      value={
+                        p.maxTotalExposurePercent === undefined
+                          ? "NOT SET"
+                          : `${p.maxTotalExposurePercent}%`
+                      }
+                    />
+                    <Rule
+                      field="minReserveAtomic"
+                      value={
+                        p.minReserveAtomic === undefined
+                          ? "NOT SET"
+                          : formatAtomic(p.minReserveAtomic, 6)
+                      }
+                    />
+                    <Rule
+                      field="maxActionsPerDay"
+                      value={
+                        p.maxActionsPerDay === undefined
+                          ? "NOT SET"
+                          : `${p.maxActionsPerDay} a day`
+                      }
+                    />
+                    <Rule
+                      field="maxDailyDeployedPercent"
+                      value={
+                        p.maxDailyDeployedPercent === undefined
+                          ? "NOT SET"
+                          : `${p.maxDailyDeployedPercent}%`
+                      }
+                    />
+                    <Rule
+                      field="cooldownSeconds"
+                      value={
+                        p.cooldownSeconds === undefined
+                          ? "NOT SET"
+                          : formatSeconds(p.cooldownSeconds)
+                      }
+                    />
+                  </RuleGroup>
+                  <RuleGroup
+                    title="Protocol controls"
+                    blurb="Where the money may and may not go."
+                  >
+                    <Rule
+                      field="allowedProtocols"
+                      value={
+                        p.allowedProtocols === undefined
+                          ? "NOT SET"
+                          : p.allowedProtocols.length === 0
+                            ? "NONE ALLOWED"
+                            : `${p.allowedProtocols.length} listed`
+                      }
+                    >
+                      {p.allowedProtocols && p.allowedProtocols.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {p.allowedProtocols.map((x) => (
+                            <Pill key={x} tone="neutral">
+                              {x}
+                            </Pill>
+                          ))}
+                        </div>
+                      ) : null}
+                    </Rule>
+                    <Rule
+                      field="blockedProtocols"
+                      value={
+                        p.blockedProtocols === undefined
+                          ? "NOT SET"
+                          : `${p.blockedProtocols.length} listed`
+                      }
+                    >
+                      {p.blockedProtocols && p.blockedProtocols.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {p.blockedProtocols.map((x) => (
+                            <Pill key={x} tone="reject">
+                              {x}
+                            </Pill>
+                          ))}
+                        </div>
+                      ) : null}
+                    </Rule>
+                  </RuleGroup>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              <GroupHeading
+                title="Core limits"
+                blurb="Asked on every single move."
+              />
+              <Control
+                label="Biggest single move"
+                hint="How much of your money can go into one thing at once."
+              >
+                <PercentSlider
+                  id="maxAllocationPercent"
+                  value={draft.maxAllocationPercent}
+                  onChange={(n) => set("maxAllocationPercent", n)}
+                />
+              </Control>
+
+              <Control
+                label="Riskiest thing allowed"
+                hint="Anything riskier is refused outright."
+              >
+                <Segmented
+                  name="Max risk"
+                  options={BANDS}
+                  value={draft.maxRisk}
+                  onChange={(v) => set("maxRisk", v)}
+                />
+              </Control>
+
+              <Control
+                label="Getting your money out"
+                hint="HIGH means you can withdraw any time."
+              >
+                <Segmented
+                  name="Min liquidity"
+                  options={BANDS}
+                  value={draft.minLiquidity}
+                  onChange={(v) => set("minLiquidity", v)}
+                />
+              </Control>
+
+              <GroupHeading
+                title="Behaviour"
+                blurb="What it may do without you."
+              />
+              <Control
+                label="Borrowing to invest"
+                hint="Borrowing multiplies losses as well as gains."
+              >
+                <Toggle
+                  id="leverageAllowed"
+                  checked={draft.leverageAllowed}
+                  onChange={(v) => set("leverageAllowed", v)}
+                  onLabel="Allowed"
+                  offLabel="Not allowed"
+                />
+              </Control>
+
+              <Control
+                label="Acting without asking"
+                hint="When off, you confirm every move yourself."
+              >
+                <Toggle
+                  id="autoExecute"
+                  checked={draft.autoExecute}
+                  onChange={(v) => set("autoExecute", v)}
+                  onLabel="On"
+                  offLabel="Off"
+                />
+              </Control>
+
+              <GroupHeading
+                title="Exposure controls"
+                blurb="Limits across everything, and over time."
+              />
+              <Control
+                label="Most invested at once"
+                hint="Across everything, not per move."
+              >
+                <OptionalNumber
+                  id="maxTotalExposurePercent"
+                  value={draft.maxTotalExposurePercent}
+                  onChange={(v) => set("maxTotalExposurePercent", v)}
+                  max={100}
+                  suffix="%"
+                />
+              </Control>
+
+              <Control
+                label="Untouchable reserve"
+                hint="Money that must always stay put. 1 USDC = 1000000."
+              >
+                <div className="flex flex-wrap items-center gap-3">
+                  <Toggle
+                    id="minReserveAtomic-enabled"
+                    checked={draft.minReserveAtomic !== undefined}
+                    onChange={(on) =>
+                      set("minReserveAtomic", on ? "0" : undefined)
                     }
-                    className="w-40 rounded border border-ink-700 bg-ink-850 px-2 py-1 font-mono text-sm text-ink-100"
+                    onLabel="In force"
+                    offLabel="Not set"
                   />
-                ) : null}
-              </div>
-            </Control>
+                  {draft.minReserveAtomic !== undefined ? (
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={draft.minReserveAtomic}
+                      onChange={(e) =>
+                        set(
+                          "minReserveAtomic",
+                          e.target.value.replace(/[^\d]/g, ""),
+                        )
+                      }
+                      className="w-40 rounded border border-ink-700 bg-ink-850 px-2 py-1 font-mono text-sm text-ink-100"
+                    />
+                  ) : null}
+                </div>
+              </Control>
 
-            <Control label="Moves per day" hint="Counted over a rolling 24 hours.">
-              <OptionalNumber
-                id="maxActionsPerDay"
-                value={draft.maxActionsPerDay}
-                onChange={(v) => set("maxActionsPerDay", v)}
-                suffix="actions"
-              />
-            </Control>
+              <Control
+                label="Moves per day"
+                hint="Counted over a rolling 24 hours."
+              >
+                <OptionalNumber
+                  id="maxActionsPerDay"
+                  value={draft.maxActionsPerDay}
+                  onChange={(v) => set("maxActionsPerDay", v)}
+                  suffix="actions"
+                />
+              </Control>
 
-            <Control
-              label="Spending limit per day"
-              hint="However the agent splits it up."
-            >
-              <OptionalNumber
-                id="maxDailyDeployedPercent"
-                value={draft.maxDailyDeployedPercent}
-                onChange={(v) => set("maxDailyDeployedPercent", v)}
-                max={100}
-                suffix="%"
-              />
-            </Control>
+              <Control
+                label="Spending limit per day"
+                hint="However the agent splits it up."
+              >
+                <OptionalNumber
+                  id="maxDailyDeployedPercent"
+                  value={draft.maxDailyDeployedPercent}
+                  onChange={(v) => set("maxDailyDeployedPercent", v)}
+                  max={100}
+                  suffix="%"
+                />
+              </Control>
 
-            <Control label="Pause between moves" hint="Gives you time to notice and step in.">
-              <OptionalNumber
-                id="cooldownSeconds"
-                value={draft.cooldownSeconds}
-                onChange={(v) => set("cooldownSeconds", v)}
-                suffix="seconds"
-              />
-            </Control>
+              <Control
+                label="Pause between moves"
+                hint="Gives you time to notice and step in."
+              >
+                <OptionalNumber
+                  id="cooldownSeconds"
+                  value={draft.cooldownSeconds}
+                  onChange={(v) => set("cooldownSeconds", v)}
+                  suffix="seconds"
+                />
+              </Control>
 
-            <GroupHeading
-              title="Protocol controls"
-              blurb="Where the money may and may not go."
-            />
-            <Control
-              label="Approved places only"
-              hint="Comma separated. An empty list allows nothing at all."
-            >
-              <ChipsInput
-                id="allowedProtocols"
-                value={draft.allowedProtocols}
-                onChange={(v) => set("allowedProtocols", v)}
-                placeholder="Testnet Stable Reserve, Testnet Balanced Pool"
+              <GroupHeading
+                title="Protocol controls"
+                blurb="Where the money may and may not go."
               />
-            </Control>
+              <Control
+                label="Approved places only"
+                hint="Comma separated. An empty list allows nothing at all."
+              >
+                <ChipsInput
+                  id="allowedProtocols"
+                  value={draft.allowedProtocols}
+                  onChange={(v) => set("allowedProtocols", v)}
+                  placeholder="Testnet Stable Reserve, Testnet Balanced Pool"
+                />
+              </Control>
 
-            <Control
-              label="Banned places"
-              hint="Comma separated. Always wins over the approved list."
-            >
-              <ChipsInput
-                id="blockedProtocols"
-                value={draft.blockedProtocols}
-                onChange={(v) => set("blockedProtocols", v)}
-                placeholder="Testnet Carry Desk"
-              />
-            </Control>
-          </>
-        )}
-      </Card>
+              <Control
+                label="Banned places"
+                hint="Comma separated. Always wins over the approved list."
+              >
+                <ChipsInput
+                  id="blockedProtocols"
+                  value={draft.blockedProtocols}
+                  onChange={(v) => set("blockedProtocols", v)}
+                  placeholder="Testnet Carry Desk"
+                />
+              </Control>
+            </>
+          )}
+        </Card>
       )}
     </div>
   );

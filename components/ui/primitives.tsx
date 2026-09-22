@@ -74,6 +74,32 @@ export function SectionHeader({
   trailing?: ReactNode;
   as?: "h1" | "h2";
 }) {
+  /*
+    Two jobs, two looks.
+
+    As an h1 this is the page's title, and it has to read as one. It used to
+    render as the same small grey uppercase label as a section heading, so on
+    three of the four workspace pages the most important words on screen were
+    the least visible. As an h2 it stays the quiet section label.
+  */
+  if (Heading === "h1") {
+    return (
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight text-ink-50 sm:text-[28px]">
+            {title}
+          </h1>
+          {subtitle ? (
+            <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-mute-1">
+              {subtitle}
+            </p>
+          ) : null}
+        </div>
+        {trailing}
+      </div>
+    );
+  }
+
   return (
     <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
       <div>

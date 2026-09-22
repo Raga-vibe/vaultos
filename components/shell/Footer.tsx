@@ -150,12 +150,11 @@ export function Footer({
   if (variant === "app") {
     return (
       <footer
-        className={clsx(
-          "mx-auto w-full max-w-6xl border-t border-ink-800 px-4 py-7 sm:px-6 lg:px-10",
-          className,
-        )}
+        className={clsx("mx-auto w-full max-w-6xl px-4 sm:px-6", className)}
       >
-        <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
+        {/* The rule lives on the inner box so it spans the content column
+            exactly, rather than overhanging it by the page's side padding. */}
+        <div className="flex flex-wrap items-start gap-x-8 gap-y-4 border-t border-ink-800 py-7">
           <div className="min-w-0">
             <NetworkChip />
             <div className="mt-2.5 max-w-md">{finePrint}</div>

@@ -407,7 +407,7 @@ export function Workbench({
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
             <SectionHeader title="Execution" />
-            <Card className="p-4 sm:p-5">
+            <Card className="relative p-4 sm:p-5">
               {executing ? (
                 <div className="flex items-center gap-3">
                   <span
@@ -434,9 +434,25 @@ export function Workbench({
                 </>
               ) : execution?.transaction ? (
                 <>
-                  <p className="text-sm font-medium text-approve-400">
+                  {/* Only ever reached with a real hash from the chain, so
+                      this motion celebrates something that happened. A ring
+                      flares once and settles; the line lands like the
+                      verdict above it did. */}
+                  <motion.span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-approve-500/70"
+                    initial={reduce ? { opacity: 0.35 } : { opacity: 0 }}
+                    animate={reduce ? { opacity: 0.35 } : { opacity: [0, 1, 0.35] }}
+                    transition={{ duration: 1, times: [0, 0.35, 1], ease: "easeOut" }}
+                  />
+                  <motion.p
+                    initial={reduce ? false : { opacity: 0, scale: 1.2 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }}
+                    className="origin-left text-sm font-medium text-approve-400"
+                  >
                     <span aria-hidden="true">✓ </span>Transaction confirmed
-                  </p>
+                  </motion.p>
 
                   <dl className="mt-4 grid gap-4 sm:grid-cols-2">
                     <Field label="Amount">
