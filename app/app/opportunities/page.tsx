@@ -3,18 +3,27 @@
 /**
  * Opportunities.
  *
- * Every card is evaluated against the live policy on load, so the grid shows
- * real verdicts rather than a guess. Those evaluations come from
- * POST /api/evaluate — the browser asks the server what it thinks and prints
- * the answer.
+ * A list beside a decision. On a wide screen the six moves sit in a column on
+ * the left that stays put, and the decision for whichever one is selected
+ * fills the right. Clicking a row changes what is next to it — never
+ * something below the fold — so the click visibly does something, and a
+ * reader can walk all six in a row and watch the verdicts change.
+ *
+ * On a phone there is no room beside anything, so the decision appears under
+ * the list and the page scrolls to it.
+ *
+ * Every row is evaluated against the live policy on load, so the list shows
+ * real verdicts rather than a guess. Those come from POST /api/evaluate — a
+ * dry run: the browser asks the server what it thinks and prints the answer.
  */
 
-import { useCallback, useEffect, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { OpportunityCard } from "../../../components/opportunities/OpportunityCard";
 import { Workbench } from "../../../components/decision/Workbench";
 import {
   ErrorNote,
+  Pill,
   Reveal,
   SectionHeader,
   Skeleton,
@@ -33,6 +42,31 @@ export default function Opportunities() {
   > | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [probeNonce, setProbeNonce] = useState(0);
+  const detail = useRef<HTMLElement>(null);
+  const listTop = useRef<HTMLDivElement>(null);
+
+  /*
+    On a phone the decision renders under the list, which is exactly the
+    "did anything happen?" problem this layout exists to solve. So on narrow
+    screens, selecting a move brings the decision into view. On wide screens
+    it is already beside the list and nothing scrolls.
+  */
+  useEffect(() => {
+    if (!selected) return;
+    if (!window.matchMedia("(max-width: 1023px)").matches) return;
+    // Wait for the outgoing panel to leave. Scrolling while the short empty
+    // state is still mounted stops short, because the page is not yet tall
+    // enough to bring the decision to the top.
+    const t = setTimeout(
+      () =>
+        detail.current?.scrollIntoView({
+          behavior: reduce ? "auto" : "smooth",
+          block: "start",
+        }),
+      reduce ? 0 : 240,
+    );
+    return () => clearTimeout(t);
+  }, [selected, reduce]);
 
   const opportunities = list.data?.opportunities;
 
@@ -105,110 +139,162 @@ export default function Opportunities() {
   const chosen =
     list.data?.opportunities.find((o) => o.id === selected) ?? null;
 
+  /*
+    Where to start, if the reader doesn't know. The move advertising the
+    biggest return — chosen from the data, not by id, and described only by
+    what it advertises. What SERV and the rules make of it is for the panel
+    to show, not for this button to promise.
+  */
+  const suggested =
+    list.data?.opportunities.reduce<
+      (typeof list.data.opportunities)[number] | null
+    >(
+      (best, o) =>
+        !best || o.estimatedApyBps > best.estimatedApyBps ? o : best,
+      null,
+    ) ?? null;
+
   return (
     <div className="space-y-8">
       <Reveal>
+        {/*
+          One sentence of purpose, because a first-time reader treats
+          "opportunity" as an offer and goes hunting for the best one. There
+          isn't one. The tally beside it is counted from the rows' own
+          verdicts, so it cannot contradict them.
+        */}
         <SectionHeader
           as="h1"
           title="Review an opportunity"
-          subtitle="Six moves an AI might want to make with your wallet. Pick one and watch your rules decide."
-        />
-
-        {/*
-          A first-time reader treats "opportunity" as an investment offering
-          and starts hunting for the best one. There isn't one. Saying so
-          up front — and saying what the page is actually for — turns the grid
-          from a shop into a test bench, which is what it is.
-        */}
-        {/*
-          One sentence, not three.
-
-          The earlier version explained the same idea twice — that these are
-          tests and not offers — and a reader who needs that said twice has
-          already stopped reading. The counts are measured from the cards below
-          rather than asserted, so the sentence cannot contradict them.
-        */}
-        <div className="mb-6 rounded-lg border border-ink-700 bg-ink-900/60 px-4 py-3">
-          <p className="text-[13px] leading-relaxed text-ink-200">
-            These are not real investments. Each one is a made-up move written
-            to trip a different limit, so you can watch your rules work.
-            {counted > 0 ? (
-              <>
-                {" "}
-                Right now{" "}
-                <span className="text-approve-400">
+          subtitle="Six made-up moves an AI might try with your wallet, each written to trip a different limit. None are real investments."
+          trailing={
+            counted > 0 ? (
+              <div className="flex items-center gap-2" aria-live="polite">
+                <Pill tone="approve">
                   {passed} {passed === 1 ? "passes" : "pass"}
-                </span>{" "}
-                and{" "}
-                <span className="text-reject-400">
-                  {refused} {refused === 1 ? "is" : "are"} refused
-                </span>
-                .
-              </>
-            ) : null}
-          </p>
-        </div>
-
-        {list.error ? (
-          <ErrorNote message={list.error} onRetry={list.reload} />
-        ) : list.loading || !list.data ? (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-64 w-full" />
-            ))}
-          </div>
-        ) : (
-          <ul className="grid list-none gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {list.data.opportunities.map((o, n) => (
-              <motion.li
-                key={o.id}
-                initial={reduce ? false : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.35,
-                  delay: n * 0.05,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-              >
-                <OpportunityCard
-                  opportunity={o}
-                  verdict={verdicts?.[o.id]?.verdict ?? null}
-                  verdictError={verdicts?.[o.id]?.error ?? null}
-                  loading={verdicts?.[o.id] === undefined}
-                  selected={selected === o.id}
-                  onSelect={() =>
-                    setSelected((s) => (s === o.id ? null : o.id))
-                  }
-                />
-              </motion.li>
-            ))}
-          </ul>
-        )}
+                </Pill>
+                <Pill tone="reject">{refused} refused</Pill>
+              </div>
+            ) : null
+          }
+        />
       </Reveal>
 
-      {chosen ? (
-        <Reveal key={chosen.id}>
-          <SectionHeader
-            title="The decision"
-            subtitle="What SERV thinks and what your rules allow are two different questions, answered by different code."
-          />
-          <Workbench
-            key={chosen.id}
-            opportunity={chosen}
-            onActivity={reprobe}
-          />
-        </Reveal>
-      ) : (
-        <div className="rounded-lg border border-dashed border-ink-700 px-4 py-10 text-center">
-          <p className="text-sm text-ink-200">
-            Pick one above to see the decision.
-          </p>
-          <p className="mx-auto mt-1.5 max-w-md text-[12px] leading-relaxed text-mute-1">
-            You will see what SERV suggests beside what your rules allow —
-            including where they disagree.
-          </p>
+      <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start">
+        {/* ── The six moves ───────────────────────────────────────── */}
+        <div
+          ref={listTop}
+          className="scroll-mt-20 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1"
+        >
+          {list.error ? (
+            <ErrorNote message={list.error} onRetry={list.reload} />
+          ) : list.loading || !list.data ? (
+            <div className="space-y-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
+            </div>
+          ) : (
+            <ul className="list-none space-y-2">
+              {list.data.opportunities.map((o, n) => (
+                <motion.li
+                  key={o.id}
+                  initial={reduce ? false : { opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{
+                    duration: 0.3,
+                    delay: n * 0.04,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                >
+                  <OpportunityCard
+                    opportunity={o}
+                    verdict={verdicts?.[o.id]?.verdict ?? null}
+                    verdictError={verdicts?.[o.id]?.error ?? null}
+                    loading={verdicts?.[o.id] === undefined}
+                    selected={selected === o.id}
+                    onSelect={() => setSelected(o.id)}
+                  />
+                </motion.li>
+              ))}
+            </ul>
+          )}
         </div>
-      )}
+
+        {/* ── The decision, beside the list ───────────────────────── */}
+        <section
+          ref={detail}
+          aria-label="Decision"
+          className="min-w-0 scroll-mt-20"
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {chosen ? (
+              <motion.div
+                key={chosen.id}
+                initial={reduce ? false : { opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={reduce ? undefined : { opacity: 0, x: -8 }}
+                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {/* On a phone the list is above; offer the way back to it. */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    listTop.current?.scrollIntoView({
+                      behavior: reduce ? "auto" : "smooth",
+                      block: "start",
+                    })
+                  }
+                  className="mb-3 font-mono text-[11px] uppercase tracking-wider text-mute-1 transition-colors hover:text-ink-100 lg:hidden"
+                >
+                  ↑ All six moves
+                </button>
+                <Workbench
+                  key={chosen.id}
+                  opportunity={chosen}
+                  onActivity={reprobe}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="empty"
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={reduce ? undefined : { opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="rounded-lg border border-dashed border-ink-700 px-6 py-12 text-center lg:py-20"
+              >
+                <p className="text-[15px] font-medium text-ink-100">
+                  <span className="hidden lg:inline">
+                    Pick a move on the left.
+                  </span>
+                  <span className="lg:hidden">Pick a move above.</span>
+                </p>
+                <p className="mx-auto mt-2 max-w-md text-[13px] leading-relaxed text-mute-1">
+                  You&rsquo;ll see what SERV suggests next to what your rules
+                  decide — and which one actually gets a say.
+                </p>
+                {suggested ? (
+                  <button
+                    type="button"
+                    onClick={() => setSelected(suggested.id)}
+                    className="mt-6 inline-flex items-center gap-2 rounded border border-approve-500/50 bg-approve-950/50 px-4 py-2.5 text-sm font-medium text-approve-400 transition-[background-color,border-color,transform] hover:border-approve-500 hover:bg-approve-950/80 active:scale-[0.98]"
+                  >
+                    Start with {suggested.name}
+                    <span aria-hidden="true">→</span>
+                  </button>
+                ) : null}
+                {suggested ? (
+                  <p className="mt-2 text-[12px] text-mute-2">
+                    It promises the biggest return. Watch what your rules do
+                    with it.
+                  </p>
+                ) : null}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
+      </div>
     </div>
   );
 }

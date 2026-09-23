@@ -1,21 +1,28 @@
 "use client";
 
 /**
- * An opportunity, with its verdict and the rule that produced it.
+ * An opportunity, as one row of the list beside the decision.
  *
- * The rule name is the product. "REJECTED" tells a user nothing they can act
- * on; "LEVERAGE_NOT_ALLOWED" tells them exactly which boundary they set is
- * doing the work, and lets them change it if they meant something else. So
- * the code is shown verbatim, in monospace, with a plain-English gloss under
- * it — not instead of it.
+ * WHY A ROW, NOT A CARD
  *
- * The fixture label is not decoration either. These are seeded testnet
- * records, and a card that looked like a live yield product would be lying.
+ * The six opportunities used to be tall cards in a grid, with the decision
+ * rendered underneath. Clicking one changed something below the fold, so on a
+ * laptop the click appeared to do nothing — the one interaction the whole
+ * product is built to show, and it looked broken.
+ *
+ * The page is now a list beside the decision. Each row carries only what a
+ * reader needs to choose and to compare: which rule the move is here to test,
+ * its name, its verdict, its risk and liquidity, and — when it was refused —
+ * the reason in one line. Everything else lives in the decision panel, which
+ * is always on screen next to the row that opened it.
+ *
+ * The verdict is the server's, from a dry run of the policy engine. The row
+ * displays it; nothing here decides anything.
  */
 
 import clsx from "clsx";
 import { motion, useReducedMotion } from "motion/react";
-import { Card, Mono, Pill, Skeleton, type Tone } from "../ui/primitives";
+import { Pill, Skeleton, type Tone } from "../ui/primitives";
 import { formatBps } from "../../lib/ui/format";
 import {
   plainLiquidity,
@@ -54,180 +61,99 @@ export function OpportunityCard({
   const primaryRule = verdict?.violations[0]?.code ?? null;
 
   return (
-    <motion.div
-      whileHover={reduce ? undefined : { y: -2 }}
-      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-      className="h-full"
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      aria-label={`Review ${opportunity.name}`}
+      className={clsx(
+        "group relative flex w-full flex-col rounded-lg border px-4 py-3 text-left transition-[background-color,border-color,transform] active:scale-[0.99]",
+        selected
+          ? "border-info-500/50 bg-ink-850"
+          : "border-ink-700 bg-ink-900/60 hover:border-ink-600 hover:bg-ink-900",
+      )}
     >
-      <Card
-        className={clsx(
-          "flex h-full flex-col transition-colors",
-          selected ? "border-info-500/50" : "hover:border-ink-600",
-        )}
-      >
-        <button
-          type="button"
-          onClick={onSelect}
-          aria-pressed={selected}
-          aria-label={`Review ${opportunity.name}`}
-          className="flex flex-1 flex-col p-4 text-left"
-        >
-          {/* First line on the card, before the name. A reader scanning six of
-              these needs to know what distinguishes them, and it is not the
-              protocol — it is which rule each one is here to exercise. */}
-          <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.12em] text-info-500">
-            Tests: {whatThisTests(opportunity)}
-          </p>
+      {/* The selection marker slides from row to row, so the eye follows the
+          click from the list to the panel it opened. */}
+      {selected ? (
+        <motion.span
+          layoutId={reduce ? undefined : "opportunity-selected"}
+          className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-info-500"
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          aria-hidden="true"
+        />
+      ) : null}
 
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h3 className="text-sm font-medium text-ink-50">
-                {opportunity.name}
-              </h3>
-              <p className="mt-0.5 truncate font-mono text-[11px] text-mute-2">
-                {opportunity.protocol}
-              </p>
-            </div>
+      <div className="flex items-center justify-between gap-3">
+        <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-info-500">
+          Tests: {whatThisTests(opportunity)}
+        </p>
 
-            <div className="shrink-0">
-              {loading ? (
-                <Skeleton className="h-5 w-20" />
-              ) : verdict ? (
-                /* The verdict settles in when its check returns, so six
-                   answers arriving one by one read as six decisions being
-                   made — which is what is happening. */
-                <motion.span
-                  key={verdict.decision}
-                  className="inline-block"
-                  initial={reduce ? false : { opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
-                >
-                  <Pill
-                    tone={approved ? "approve" : "reject"}
-                    title={
-                      approved
-                        ? "Every rule passed."
-                        : "A rule stopped this. Nothing moved."
-                    }
-                  >
-                    {approved ? "Allowed" : "Refused"}
-                  </Pill>
-                </motion.span>
-              ) : verdictError ? (
-                <Pill tone="warn">No verdict</Pill>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-1.5">
-            <Pill tone={riskTone(opportunity.risk)}>
-              {plainRisk(opportunity.risk)}
-            </Pill>
-            <Pill tone={liquidityTone(opportunity.liquidity)}>
-              {plainLiquidity(opportunity.liquidity)}
-            </Pill>
-            {opportunity.usesLeverage ? (
-              <Pill tone="warn" title="Borrows money to invest">
-                Borrows to invest
+        <div className="shrink-0">
+          {loading ? (
+            <Skeleton className="h-5 w-16" />
+          ) : verdict ? (
+            /* Settles in when its dry run returns, so six answers arriving one
+               by one read as six decisions being made — which they are. */
+            <motion.span
+              key={verdict.decision}
+              className="inline-block"
+              initial={reduce ? false : { opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
+            >
+              <Pill
+                tone={approved ? "approve" : "reject"}
+                title={
+                  approved
+                    ? "Every rule passed."
+                    : "A rule stopped this. Nothing moved."
+                }
+              >
+                {approved ? "Allowed" : "Refused"}
               </Pill>
-            ) : null}
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-ink-800 pt-3">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.12em] text-mute-2">
-                Asset
-              </p>
-              <Mono className="text-sm text-ink-200">
-                {opportunity.tokenSymbol}
-              </Mono>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.12em] text-mute-2">
-                Claimed return
-              </p>
-              <Mono className="text-sm text-ink-200">
-                {formatBps(opportunity.estimatedApyBps)}
-              </Mono>
-            </div>
-          </div>
-
-          {/* What was proposed, in the units the allocation cap is written in.
-              Without it a refusal for exceeding a cap has nothing to exceed. */}
-          {verdict && verdict.allocationBps !== null ? (
-            <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-ink-800 pt-3">
-              <p className="text-[10px] uppercase tracking-[0.12em] text-mute-2">
-                Share of wallet
-              </p>
-              <Mono className="text-sm text-ink-200">
-                {(verdict.allocationBps / 100).toFixed(2)}%
-              </Mono>
-            </div>
+            </motion.span>
+          ) : verdictError ? (
+            <Pill tone="warn" title={verdictError}>
+              No verdict
+            </Pill>
           ) : null}
-
-          {/* The reason. This is why the card exists. */}
-          <div className="mt-3 min-h-[3.25rem]">
-            {loading ? (
-              <Skeleton className="h-10 w-full" />
-            ) : primaryRule ? (
-              /* A refused card is not a broken card. The green micro-label
-                 says so before the red does, so the grid reads as three
-                 boundaries holding rather than three things going wrong. */
-              <div className="rounded border border-reject-500/25 bg-reject-950/25 px-2.5 py-2">
-                <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-approve-400">
-                  ✓ Boundary held
-                </p>
-                <p className="mt-1 text-[12px] leading-snug text-ink-200">
-                  {plainRefusal(primaryRule)}
-                </p>
-                <Mono className="mt-1.5 block text-[10px] text-reject-400/90">
-                  {primaryRule}
-                  {verdict && verdict.violations.length > 1
-                    ? ` +${verdict.violations.length - 1}`
-                    : ""}
-                </Mono>
-              </div>
-            ) : verdict ? (
-              <div className="rounded border border-approve-500/25 bg-approve-950/25 px-2.5 py-2">
-                <p className="text-[12px] leading-snug text-ink-200">
-                  {verdict.requiresManualApproval
-                    ? "Passes every rule. Waiting for you to confirm."
-                    : "Passes every rule. Cleared to go."}
-                </p>
-                <Mono className="mt-1.5 block text-[10px] text-approve-400/80">
-                  ALL {verdict.evaluated.length} CHECKS PASSED
-                </Mono>
-              </div>
-            ) : verdictError ? (
-              /* An unreachable engine is reported as unknown, never as a pass.
-                 A blank space here would read as "nothing wrong". */
-              <div className="rounded border border-warn-500/25 bg-warn-950/25 px-2.5 py-2">
-                <p className="text-[12px] leading-snug text-ink-200">
-                  Couldn&rsquo;t check this one.
-                </p>
-                <p className="mt-1 line-clamp-2 font-mono text-[10px] leading-snug text-warn-400/80">
-                  {verdictError}
-                </p>
-              </div>
-            ) : null}
-          </div>
-        </button>
-
-        {/* The review affordance, stated in words. A card that only responded
-            to being clicked gave no hint that clicking was the point. */}
-        <div className="flex items-center justify-between gap-2 border-t border-ink-800 px-4 py-2">
-          <p className="text-[10px] text-mute-3">Example · test network</p>
-          <span
-            className={clsx(
-              "font-mono text-[10px] uppercase tracking-wider",
-              selected ? "text-info-500" : "text-mute-1",
-            )}
-          >
-            {selected ? "Reviewing ↓" : "Review →"}
-          </span>
         </div>
-      </Card>
-    </motion.div>
+      </div>
+
+      <div className="mt-1.5 flex items-baseline justify-between gap-3">
+        <h3 className="text-[14px] font-medium text-ink-50">
+          {opportunity.name}
+        </h3>
+        <span
+          className="shrink-0 font-mono text-[12px] text-mute-2"
+          title="The return it advertises. Not a promise, and not why it passes or fails."
+        >
+          {formatBps(opportunity.estimatedApyBps)}
+        </span>
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <Pill tone={riskTone(opportunity.risk)}>
+          {plainRisk(opportunity.risk)}
+        </Pill>
+        <Pill tone={liquidityTone(opportunity.liquidity)}>
+          {plainLiquidity(opportunity.liquidity)}
+        </Pill>
+        {opportunity.usesLeverage ? (
+          <Pill tone="warn" title="Borrows money to invest">
+            Borrows to invest
+          </Pill>
+        ) : null}
+      </div>
+
+      {/* The reason, when there is one. One line of it is enough to compare
+          rows; the full explanation is in the panel. */}
+      {primaryRule ? (
+        <p className="mt-2 line-clamp-2 text-[12px] leading-snug text-reject-400/90">
+          {plainRefusal(primaryRule)}
+        </p>
+      ) : null}
+    </button>
   );
 }

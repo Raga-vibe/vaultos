@@ -106,7 +106,7 @@ const STEPS: Step[] = [
   {
     run: "refuse",
     at: 0,
-    caption: "Another move — Volatile strategy, 24.5%. SERV likes it.",
+    caption: "Another move — Volatile strategy, promising 24.5%.",
     ms: 2300,
   },
   {
@@ -121,7 +121,7 @@ const STEPS: Step[] = [
     at: 1,
     rules: "fail",
     halted: true,
-    caption: "Nothing is sent. SERV's opinion never became permission.",
+    caption: "Nothing is sent. Whatever SERV thought, it was never permission.",
     ms: 3200,
   },
 ];
