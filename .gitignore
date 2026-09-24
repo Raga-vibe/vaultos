@@ -43,3 +43,11 @@ Thumbs.db
 desktop.ini
 .idea/
 *.swp
+
+# ─── Local-only ─────────────────────────────────────────────────────────
+# AI coding-assistant instructions. `next dev` rewrites AGENTS.md on its own,
+# so it is ignored rather than deleted.
+AGENTS.md
+CLAUDE.md
+# Launch-video source (Remotion). Kept on this machine, not published.
+video/
